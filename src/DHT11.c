@@ -39,8 +39,8 @@ void DHT11SentStartRequest(){
 	GPIOG->OSPEEDR|=(uint32_t)(1<<11);
 	GPIOG->OSPEEDR&= ~((uint32_t)(1<<10));
 
-	// push-pull
-	GPIOG->OTYPER &= ~((uint32_t)(1<<5));
+	// open-drain
+	GPIOG->OTYPER |= ((uint32_t)(1<<5));
 
 	// no pull-up (external pull-up)
 	GPIOG->PUPDR &= ~((uint32_t)(1<<10));
@@ -69,8 +69,8 @@ void DHT11SentStartRequest(){
 }
 uint32_t DHT11RecvData(uint32_t * intervalsArray){
 	// enter to input mode (external pullup)
-	GPIOG->MODER &= ~((uint32_t)(1<<11));
-	GPIOG->MODER &= ~((uint32_t)(1<<10));
+	//GPIOG->MODER &= ~((uint32_t)(1<<11));
+	//GPIOG->MODER &= ~((uint32_t)(1<<10));
 
 	uint16_t state=GPIOG->IDR & (1<<5);
 
@@ -122,10 +122,10 @@ uint32_t DHT11DecodeByte(uint32_t * intervals,uint8_t * result){
 	int index;
 	*result=0;
 	for(index=0;index<8;index++){
-		if(intervals[index]>20 && intervals[index]<30){
+		if(intervals[index]>10 && intervals[index]<40){
 			*result=(*result)<<1;
 		}
-		else if(intervals[index]>60 && intervals[index]<80){
+		else if(intervals[index]>50 && intervals[index]<90){
 			*result=((*result)<<1) + 0x01;
 		}
 		else{

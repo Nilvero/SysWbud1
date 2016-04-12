@@ -5,13 +5,13 @@ Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
   0 .isr_vector   000001ac  08000000  08000000  00008000  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  1 .text         000009c8  080001ac  080001ac  000081ac  2**2
+  1 .text         000009b0  080001ac  080001ac  000081ac  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .init_array   00000004  08000b74  08000b74  00008b74  2**2
+  2 .init_array   00000004  08000b5c  08000b5c  00008b5c  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  3 .fini_array   00000004  08000b78  08000b78  00008b78  2**2
+  3 .fini_array   00000004  08000b60  08000b60  00008b60  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  4 .data         00000008  20000000  08000b7c  00010000  2**2
+  4 .data         00000008  20000000  08000b64  00010000  2**2
                   CONTENTS, ALLOC, LOAD, DATA
   5 .bss          00000028  20000008  20000008  00010008  2**2
                   ALLOC
@@ -27,11 +27,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
  11 .debug_ranges 000002e8  00000000  00000000  00013470  2**3
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_line   000015cf  00000000  00000000  00013758  2**0
+ 12 .debug_line   000015cd  00000000  00000000  00013758  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .debug_str    00001082  00000000  00000000  00014d27  2**0
+ 13 .debug_str    00001082  00000000  00000000  00014d25  2**0
                   CONTENTS, READONLY, DEBUGGING
- 14 .comment      00000082  00000000  00000000  00015da9  2**0
+ 14 .comment      00000082  00000000  00000000  00015da7  2**0
                   CONTENTS, READONLY
  15 .debug_frame  0000098c  00000000  00000000  00015e2c  2**2
                   CONTENTS, READONLY, DEBUGGING
@@ -52,7 +52,7 @@ Disassembly of section .text:
  80001c2:	bd10      	pop	{r4, pc}
  80001c4:	20000008 	.word	0x20000008
  80001c8:	00000000 	.word	0x00000000
- 80001cc:	08000b5c 	.word	0x08000b5c
+ 80001cc:	08000b44 	.word	0x08000b44
 
 080001d0 <frame_dummy>:
  80001d0:	b508      	push	{r3, lr}
@@ -63,7 +63,7 @@ Disassembly of section .text:
  80001da:	f3af 8000 	nop.w
  80001de:	bd08      	pop	{r3, pc}
  80001e0:	00000000 	.word	0x00000000
- 80001e4:	08000b5c 	.word	0x08000b5c
+ 80001e4:	08000b44 	.word	0x08000b44
  80001e8:	2000000c 	.word	0x2000000c
 
 080001ec <SystemInit>:
@@ -533,7 +533,7 @@ LoopFillZerobss:
  80003d6:	f7ff ff09 	bl	80001ec <SystemInit>
 /* Call static constructors */
     bl __libc_init_array
- 80003da:	f000 fb99 	bl	8000b10 <__libc_init_array>
+ 80003da:	f000 fb8d 	bl	8000af8 <__libc_init_array>
 /* Call the application's entry point.*/
   bl  main
  80003de:	f000 f80f 	bl	8000400 <main>
@@ -552,7 +552,7 @@ Reset_Handler:
 
 CopyDataInit:
   ldr  r3, =_sidata
- 80003e8:	08000b7c 	.word	0x08000b7c
+ 80003e8:	08000b64 	.word	0x08000b64
   ldr  r3, [r3, r1]
   str  r3, [r0, r1]
   adds  r1, r1, #4
@@ -603,7 +603,7 @@ int main(void)
 	  DHT11Result dht11Result=DHT11_read();
  800040a:	463b      	mov	r3, r7
  800040c:	4618      	mov	r0, r3
- 800040e:	f000 fa0d 	bl	800082c <DHT11_read>
+ 800040e:	f000 fa01 	bl	8000814 <DHT11_read>
 	  if(dht11Result.ERROR_CODE==DHT11_TIME_OUT){
  8000412:	68bb      	ldr	r3, [r7, #8]
  8000414:	2b03      	cmp	r3, #3
@@ -742,12 +742,12 @@ void DHT11SentStartRequest(){
  80004d2:	f422 6280 	bic.w	r2, r2, #1024	; 0x400
  80004d6:	609a      	str	r2, [r3, #8]
 
-	// push-pull
-	GPIOG->OTYPER &= ~((uint32_t)(1<<5));
+	// open-drain
+	GPIOG->OTYPER |= ((uint32_t)(1<<5));
  80004d8:	4b22      	ldr	r3, [pc, #136]	; (8000564 <DHT11SentStartRequest+0xcc>)
  80004da:	4a22      	ldr	r2, [pc, #136]	; (8000564 <DHT11SentStartRequest+0xcc>)
  80004dc:	6852      	ldr	r2, [r2, #4]
- 80004de:	f022 0220 	bic.w	r2, r2, #32
+ 80004de:	f042 0220 	orr.w	r2, r2, #32
  80004e2:	605a      	str	r2, [r3, #4]
 
 	// no pull-up (external pull-up)
@@ -840,1061 +840,1051 @@ uint32_t DHT11RecvData(uint32_t * intervalsArray){
  800056c:	af00      	add	r7, sp, #0
  800056e:	6078      	str	r0, [r7, #4]
 	// enter to input mode (external pullup)
-	GPIOG->MODER &= ~((uint32_t)(1<<11));
- 8000570:	4b3a      	ldr	r3, [pc, #232]	; (800065c <DHT11RecvData+0xf4>)
- 8000572:	4a3a      	ldr	r2, [pc, #232]	; (800065c <DHT11RecvData+0xf4>)
- 8000574:	6812      	ldr	r2, [r2, #0]
- 8000576:	f422 6200 	bic.w	r2, r2, #2048	; 0x800
- 800057a:	601a      	str	r2, [r3, #0]
-	GPIOG->MODER &= ~((uint32_t)(1<<10));
- 800057c:	4b37      	ldr	r3, [pc, #220]	; (800065c <DHT11RecvData+0xf4>)
- 800057e:	4a37      	ldr	r2, [pc, #220]	; (800065c <DHT11RecvData+0xf4>)
- 8000580:	6812      	ldr	r2, [r2, #0]
- 8000582:	f422 6280 	bic.w	r2, r2, #1024	; 0x400
- 8000586:	601a      	str	r2, [r3, #0]
+	//GPIOG->MODER &= ~((uint32_t)(1<<11));
+	//GPIOG->MODER &= ~((uint32_t)(1<<10));
 
 	uint16_t state=GPIOG->IDR & (1<<5);
- 8000588:	4b34      	ldr	r3, [pc, #208]	; (800065c <DHT11RecvData+0xf4>)
- 800058a:	691b      	ldr	r3, [r3, #16]
- 800058c:	b29b      	uxth	r3, r3
- 800058e:	f003 0320 	and.w	r3, r3, #32
- 8000592:	81fb      	strh	r3, [r7, #14]
+ 8000570:	4b34      	ldr	r3, [pc, #208]	; (8000644 <DHT11RecvData+0xdc>)
+ 8000572:	691b      	ldr	r3, [r3, #16]
+ 8000574:	b29b      	uxth	r3, r3
+ 8000576:	f003 0320 	and.w	r3, r3, #32
+ 800057a:	81fb      	strh	r3, [r7, #14]
 
 	// start timer
 	TIM2->CR1 |= 0x01;
- 8000594:	f04f 4380 	mov.w	r3, #1073741824	; 0x40000000
- 8000598:	f04f 4280 	mov.w	r2, #1073741824	; 0x40000000
- 800059c:	8812      	ldrh	r2, [r2, #0]
- 800059e:	b292      	uxth	r2, r2
- 80005a0:	f042 0201 	orr.w	r2, r2, #1
- 80005a4:	b292      	uxth	r2, r2
- 80005a6:	801a      	strh	r2, [r3, #0]
+ 800057c:	f04f 4380 	mov.w	r3, #1073741824	; 0x40000000
+ 8000580:	f04f 4280 	mov.w	r2, #1073741824	; 0x40000000
+ 8000584:	8812      	ldrh	r2, [r2, #0]
+ 8000586:	b292      	uxth	r2, r2
+ 8000588:	f042 0201 	orr.w	r2, r2, #1
+ 800058c:	b292      	uxth	r2, r2
+ 800058e:	801a      	strh	r2, [r3, #0]
 
 	// listen for new data
 	int dataNumber;
 	for(dataNumber=0;dataNumber<42;dataNumber++){
- 80005a8:	2300      	movs	r3, #0
- 80005aa:	60bb      	str	r3, [r7, #8]
- 80005ac:	e04b      	b.n	8000646 <DHT11RecvData+0xde>
+ 8000590:	2300      	movs	r3, #0
+ 8000592:	60bb      	str	r3, [r7, #8]
+ 8000594:	e04b      	b.n	800062e <DHT11RecvData+0xc6>
 		// reset timer value
 		TIM2->CNT=0;
- 80005ae:	f04f 4380 	mov.w	r3, #1073741824	; 0x40000000
- 80005b2:	2200      	movs	r2, #0
- 80005b4:	625a      	str	r2, [r3, #36]	; 0x24
+ 8000596:	f04f 4380 	mov.w	r3, #1073741824	; 0x40000000
+ 800059a:	2200      	movs	r2, #0
+ 800059c:	625a      	str	r2, [r3, #36]	; 0x24
 		//start timer
 		TIM2->CR1|=0x01;
- 80005b6:	f04f 4380 	mov.w	r3, #1073741824	; 0x40000000
- 80005ba:	f04f 4280 	mov.w	r2, #1073741824	; 0x40000000
- 80005be:	8812      	ldrh	r2, [r2, #0]
- 80005c0:	b292      	uxth	r2, r2
- 80005c2:	f042 0201 	orr.w	r2, r2, #1
- 80005c6:	b292      	uxth	r2, r2
- 80005c8:	801a      	strh	r2, [r3, #0]
+ 800059e:	f04f 4380 	mov.w	r3, #1073741824	; 0x40000000
+ 80005a2:	f04f 4280 	mov.w	r2, #1073741824	; 0x40000000
+ 80005a6:	8812      	ldrh	r2, [r2, #0]
+ 80005a8:	b292      	uxth	r2, r2
+ 80005aa:	f042 0201 	orr.w	r2, r2, #1
+ 80005ae:	b292      	uxth	r2, r2
+ 80005b0:	801a      	strh	r2, [r3, #0]
 
 		// wait for logical level change or timeout
 		while(TIM2->CNT<500 && (GPIOG->IDR & (1<<5))==state){
- 80005ca:	e000      	b.n	80005ce <DHT11RecvData+0x66>
- 80005cc:	bf00      	nop
- 80005ce:	f04f 4380 	mov.w	r3, #1073741824	; 0x40000000
- 80005d2:	6a5b      	ldr	r3, [r3, #36]	; 0x24
- 80005d4:	f5b3 7ffa 	cmp.w	r3, #500	; 0x1f4
- 80005d8:	d206      	bcs.n	80005e8 <DHT11RecvData+0x80>
- 80005da:	4b20      	ldr	r3, [pc, #128]	; (800065c <DHT11RecvData+0xf4>)
- 80005dc:	691b      	ldr	r3, [r3, #16]
- 80005de:	f003 0220 	and.w	r2, r3, #32
- 80005e2:	89fb      	ldrh	r3, [r7, #14]
- 80005e4:	429a      	cmp	r2, r3
- 80005e6:	d0f1      	beq.n	80005cc <DHT11RecvData+0x64>
+ 80005b2:	e000      	b.n	80005b6 <DHT11RecvData+0x4e>
+ 80005b4:	bf00      	nop
+ 80005b6:	f04f 4380 	mov.w	r3, #1073741824	; 0x40000000
+ 80005ba:	6a5b      	ldr	r3, [r3, #36]	; 0x24
+ 80005bc:	f5b3 7ffa 	cmp.w	r3, #500	; 0x1f4
+ 80005c0:	d206      	bcs.n	80005d0 <DHT11RecvData+0x68>
+ 80005c2:	4b20      	ldr	r3, [pc, #128]	; (8000644 <DHT11RecvData+0xdc>)
+ 80005c4:	691b      	ldr	r3, [r3, #16]
+ 80005c6:	f003 0220 	and.w	r2, r3, #32
+ 80005ca:	89fb      	ldrh	r3, [r7, #14]
+ 80005cc:	429a      	cmp	r2, r3
+ 80005ce:	d0f1      	beq.n	80005b4 <DHT11RecvData+0x4c>
 			__NOP();
 		}
 
 		// stop timer
 		TIM2->CR1 &= ~0x00000001;
- 80005e8:	f04f 4380 	mov.w	r3, #1073741824	; 0x40000000
- 80005ec:	f04f 4280 	mov.w	r2, #1073741824	; 0x40000000
- 80005f0:	8812      	ldrh	r2, [r2, #0]
- 80005f2:	b292      	uxth	r2, r2
- 80005f4:	f022 0201 	bic.w	r2, r2, #1
- 80005f8:	b292      	uxth	r2, r2
- 80005fa:	801a      	strh	r2, [r3, #0]
+ 80005d0:	f04f 4380 	mov.w	r3, #1073741824	; 0x40000000
+ 80005d4:	f04f 4280 	mov.w	r2, #1073741824	; 0x40000000
+ 80005d8:	8812      	ldrh	r2, [r2, #0]
+ 80005da:	b292      	uxth	r2, r2
+ 80005dc:	f022 0201 	bic.w	r2, r2, #1
+ 80005e0:	b292      	uxth	r2, r2
+ 80005e2:	801a      	strh	r2, [r3, #0]
 
 		// if timeout return error code
 		if(TIM2->CNT>=500){
- 80005fc:	f04f 4380 	mov.w	r3, #1073741824	; 0x40000000
- 8000600:	6a5b      	ldr	r3, [r3, #36]	; 0x24
- 8000602:	f5b3 7ffa 	cmp.w	r3, #500	; 0x1f4
- 8000606:	d306      	bcc.n	8000616 <DHT11RecvData+0xae>
+ 80005e4:	f04f 4380 	mov.w	r3, #1073741824	; 0x40000000
+ 80005e8:	6a5b      	ldr	r3, [r3, #36]	; 0x24
+ 80005ea:	f5b3 7ffa 	cmp.w	r3, #500	; 0x1f4
+ 80005ee:	d306      	bcc.n	80005fe <DHT11RecvData+0x96>
 			if(dataNumber==0){
- 8000608:	68bb      	ldr	r3, [r7, #8]
- 800060a:	2b00      	cmp	r3, #0
- 800060c:	d101      	bne.n	8000612 <DHT11RecvData+0xaa>
+ 80005f0:	68bb      	ldr	r3, [r7, #8]
+ 80005f2:	2b00      	cmp	r3, #0
+ 80005f4:	d101      	bne.n	80005fa <DHT11RecvData+0x92>
 				return DHT11_NO_RESPONSE;
- 800060e:	2302      	movs	r3, #2
- 8000610:	e01d      	b.n	800064e <DHT11RecvData+0xe6>
+ 80005f6:	2302      	movs	r3, #2
+ 80005f8:	e01d      	b.n	8000636 <DHT11RecvData+0xce>
 			}
 			else{
 				return DHT11_TIME_OUT;
- 8000612:	2303      	movs	r3, #3
- 8000614:	e01b      	b.n	800064e <DHT11RecvData+0xe6>
+ 80005fa:	2303      	movs	r3, #3
+ 80005fc:	e01b      	b.n	8000636 <DHT11RecvData+0xce>
 			}
 		}
 
 		// read new logical state
 		state=GPIOG->IDR & (1<<5);
- 8000616:	4b11      	ldr	r3, [pc, #68]	; (800065c <DHT11RecvData+0xf4>)
- 8000618:	691b      	ldr	r3, [r3, #16]
- 800061a:	b29b      	uxth	r3, r3
- 800061c:	f003 0320 	and.w	r3, r3, #32
- 8000620:	81fb      	strh	r3, [r7, #14]
+ 80005fe:	4b11      	ldr	r3, [pc, #68]	; (8000644 <DHT11RecvData+0xdc>)
+ 8000600:	691b      	ldr	r3, [r3, #16]
+ 8000602:	b29b      	uxth	r3, r3
+ 8000604:	f003 0320 	and.w	r3, r3, #32
+ 8000608:	81fb      	strh	r3, [r7, #14]
 
 		if(!state){
- 8000622:	89fb      	ldrh	r3, [r7, #14]
- 8000624:	2b00      	cmp	r3, #0
- 8000626:	d108      	bne.n	800063a <DHT11RecvData+0xd2>
+ 800060a:	89fb      	ldrh	r3, [r7, #14]
+ 800060c:	2b00      	cmp	r3, #0
+ 800060e:	d108      	bne.n	8000622 <DHT11RecvData+0xba>
 			// save active state time
 			intervalsArray[dataNumber]=TIM2->CNT;
- 8000628:	68bb      	ldr	r3, [r7, #8]
- 800062a:	009b      	lsls	r3, r3, #2
- 800062c:	687a      	ldr	r2, [r7, #4]
- 800062e:	4413      	add	r3, r2
- 8000630:	f04f 4280 	mov.w	r2, #1073741824	; 0x40000000
- 8000634:	6a52      	ldr	r2, [r2, #36]	; 0x24
- 8000636:	601a      	str	r2, [r3, #0]
- 8000638:	e002      	b.n	8000640 <DHT11RecvData+0xd8>
+ 8000610:	68bb      	ldr	r3, [r7, #8]
+ 8000612:	009b      	lsls	r3, r3, #2
+ 8000614:	687a      	ldr	r2, [r7, #4]
+ 8000616:	4413      	add	r3, r2
+ 8000618:	f04f 4280 	mov.w	r2, #1073741824	; 0x40000000
+ 800061c:	6a52      	ldr	r2, [r2, #36]	; 0x24
+ 800061e:	601a      	str	r2, [r3, #0]
+ 8000620:	e002      	b.n	8000628 <DHT11RecvData+0xc0>
 		}
 		else
 		{
 			// ignore inactive states
 			dataNumber--;
- 800063a:	68bb      	ldr	r3, [r7, #8]
- 800063c:	3b01      	subs	r3, #1
- 800063e:	60bb      	str	r3, [r7, #8]
+ 8000622:	68bb      	ldr	r3, [r7, #8]
+ 8000624:	3b01      	subs	r3, #1
+ 8000626:	60bb      	str	r3, [r7, #8]
 	// start timer
 	TIM2->CR1 |= 0x01;
 
 	// listen for new data
 	int dataNumber;
 	for(dataNumber=0;dataNumber<42;dataNumber++){
- 8000640:	68bb      	ldr	r3, [r7, #8]
- 8000642:	3301      	adds	r3, #1
- 8000644:	60bb      	str	r3, [r7, #8]
- 8000646:	68bb      	ldr	r3, [r7, #8]
- 8000648:	2b29      	cmp	r3, #41	; 0x29
- 800064a:	ddb0      	ble.n	80005ae <DHT11RecvData+0x46>
+ 8000628:	68bb      	ldr	r3, [r7, #8]
+ 800062a:	3301      	adds	r3, #1
+ 800062c:	60bb      	str	r3, [r7, #8]
+ 800062e:	68bb      	ldr	r3, [r7, #8]
+ 8000630:	2b29      	cmp	r3, #41	; 0x29
+ 8000632:	ddb0      	ble.n	8000596 <DHT11RecvData+0x2e>
 		{
 			// ignore inactive states
 			dataNumber--;
 		}
 	}
 	return DHT11_OK;
- 800064c:	2300      	movs	r3, #0
+ 8000634:	2300      	movs	r3, #0
 }
- 800064e:	4618      	mov	r0, r3
- 8000650:	3714      	adds	r7, #20
- 8000652:	46bd      	mov	sp, r7
- 8000654:	f85d 7b04 	ldr.w	r7, [sp], #4
- 8000658:	4770      	bx	lr
- 800065a:	bf00      	nop
- 800065c:	40021800 	.word	0x40021800
+ 8000636:	4618      	mov	r0, r3
+ 8000638:	3714      	adds	r7, #20
+ 800063a:	46bd      	mov	sp, r7
+ 800063c:	f85d 7b04 	ldr.w	r7, [sp], #4
+ 8000640:	4770      	bx	lr
+ 8000642:	bf00      	nop
+ 8000644:	40021800 	.word	0x40021800
 
-08000660 <DHT11DecodeByte>:
+08000648 <DHT11DecodeByte>:
 uint32_t DHT11DecodeByte(uint32_t * intervals,uint8_t * result){
- 8000660:	b480      	push	{r7}
- 8000662:	b085      	sub	sp, #20
- 8000664:	af00      	add	r7, sp, #0
- 8000666:	6078      	str	r0, [r7, #4]
- 8000668:	6039      	str	r1, [r7, #0]
+ 8000648:	b480      	push	{r7}
+ 800064a:	b085      	sub	sp, #20
+ 800064c:	af00      	add	r7, sp, #0
+ 800064e:	6078      	str	r0, [r7, #4]
+ 8000650:	6039      	str	r1, [r7, #0]
 	int index;
 	*result=0;
- 800066a:	683b      	ldr	r3, [r7, #0]
- 800066c:	2200      	movs	r2, #0
- 800066e:	701a      	strb	r2, [r3, #0]
+ 8000652:	683b      	ldr	r3, [r7, #0]
+ 8000654:	2200      	movs	r2, #0
+ 8000656:	701a      	strb	r2, [r3, #0]
 	for(index=0;index<8;index++){
- 8000670:	2300      	movs	r3, #0
- 8000672:	60fb      	str	r3, [r7, #12]
- 8000674:	e030      	b.n	80006d8 <DHT11DecodeByte+0x78>
-		if(intervals[index]>20 && intervals[index]<30){
- 8000676:	68fb      	ldr	r3, [r7, #12]
- 8000678:	009b      	lsls	r3, r3, #2
- 800067a:	687a      	ldr	r2, [r7, #4]
- 800067c:	4413      	add	r3, r2
- 800067e:	681b      	ldr	r3, [r3, #0]
- 8000680:	2b14      	cmp	r3, #20
- 8000682:	d90d      	bls.n	80006a0 <DHT11DecodeByte+0x40>
- 8000684:	68fb      	ldr	r3, [r7, #12]
- 8000686:	009b      	lsls	r3, r3, #2
- 8000688:	687a      	ldr	r2, [r7, #4]
- 800068a:	4413      	add	r3, r2
- 800068c:	681b      	ldr	r3, [r3, #0]
- 800068e:	2b1d      	cmp	r3, #29
- 8000690:	d806      	bhi.n	80006a0 <DHT11DecodeByte+0x40>
+ 8000658:	2300      	movs	r3, #0
+ 800065a:	60fb      	str	r3, [r7, #12]
+ 800065c:	e030      	b.n	80006c0 <DHT11DecodeByte+0x78>
+		if(intervals[index]>10 && intervals[index]<40){
+ 800065e:	68fb      	ldr	r3, [r7, #12]
+ 8000660:	009b      	lsls	r3, r3, #2
+ 8000662:	687a      	ldr	r2, [r7, #4]
+ 8000664:	4413      	add	r3, r2
+ 8000666:	681b      	ldr	r3, [r3, #0]
+ 8000668:	2b0a      	cmp	r3, #10
+ 800066a:	d90d      	bls.n	8000688 <DHT11DecodeByte+0x40>
+ 800066c:	68fb      	ldr	r3, [r7, #12]
+ 800066e:	009b      	lsls	r3, r3, #2
+ 8000670:	687a      	ldr	r2, [r7, #4]
+ 8000672:	4413      	add	r3, r2
+ 8000674:	681b      	ldr	r3, [r3, #0]
+ 8000676:	2b27      	cmp	r3, #39	; 0x27
+ 8000678:	d806      	bhi.n	8000688 <DHT11DecodeByte+0x40>
 			*result=(*result)<<1;
- 8000692:	683b      	ldr	r3, [r7, #0]
- 8000694:	781b      	ldrb	r3, [r3, #0]
- 8000696:	005b      	lsls	r3, r3, #1
- 8000698:	b2da      	uxtb	r2, r3
- 800069a:	683b      	ldr	r3, [r7, #0]
- 800069c:	701a      	strb	r2, [r3, #0]
- 800069e:	e018      	b.n	80006d2 <DHT11DecodeByte+0x72>
+ 800067a:	683b      	ldr	r3, [r7, #0]
+ 800067c:	781b      	ldrb	r3, [r3, #0]
+ 800067e:	005b      	lsls	r3, r3, #1
+ 8000680:	b2da      	uxtb	r2, r3
+ 8000682:	683b      	ldr	r3, [r7, #0]
+ 8000684:	701a      	strb	r2, [r3, #0]
+ 8000686:	e018      	b.n	80006ba <DHT11DecodeByte+0x72>
 		}
-		else if(intervals[index]>60 && intervals[index]<80){
- 80006a0:	68fb      	ldr	r3, [r7, #12]
- 80006a2:	009b      	lsls	r3, r3, #2
- 80006a4:	687a      	ldr	r2, [r7, #4]
- 80006a6:	4413      	add	r3, r2
- 80006a8:	681b      	ldr	r3, [r3, #0]
- 80006aa:	2b3c      	cmp	r3, #60	; 0x3c
- 80006ac:	d90f      	bls.n	80006ce <DHT11DecodeByte+0x6e>
- 80006ae:	68fb      	ldr	r3, [r7, #12]
- 80006b0:	009b      	lsls	r3, r3, #2
- 80006b2:	687a      	ldr	r2, [r7, #4]
- 80006b4:	4413      	add	r3, r2
- 80006b6:	681b      	ldr	r3, [r3, #0]
- 80006b8:	2b4f      	cmp	r3, #79	; 0x4f
- 80006ba:	d808      	bhi.n	80006ce <DHT11DecodeByte+0x6e>
+		else if(intervals[index]>50 && intervals[index]<90){
+ 8000688:	68fb      	ldr	r3, [r7, #12]
+ 800068a:	009b      	lsls	r3, r3, #2
+ 800068c:	687a      	ldr	r2, [r7, #4]
+ 800068e:	4413      	add	r3, r2
+ 8000690:	681b      	ldr	r3, [r3, #0]
+ 8000692:	2b32      	cmp	r3, #50	; 0x32
+ 8000694:	d90f      	bls.n	80006b6 <DHT11DecodeByte+0x6e>
+ 8000696:	68fb      	ldr	r3, [r7, #12]
+ 8000698:	009b      	lsls	r3, r3, #2
+ 800069a:	687a      	ldr	r2, [r7, #4]
+ 800069c:	4413      	add	r3, r2
+ 800069e:	681b      	ldr	r3, [r3, #0]
+ 80006a0:	2b59      	cmp	r3, #89	; 0x59
+ 80006a2:	d808      	bhi.n	80006b6 <DHT11DecodeByte+0x6e>
 			*result=((*result)<<1) + 0x01;
- 80006bc:	683b      	ldr	r3, [r7, #0]
- 80006be:	781b      	ldrb	r3, [r3, #0]
- 80006c0:	005b      	lsls	r3, r3, #1
- 80006c2:	b2db      	uxtb	r3, r3
- 80006c4:	3301      	adds	r3, #1
- 80006c6:	b2da      	uxtb	r2, r3
- 80006c8:	683b      	ldr	r3, [r7, #0]
- 80006ca:	701a      	strb	r2, [r3, #0]
- 80006cc:	e001      	b.n	80006d2 <DHT11DecodeByte+0x72>
+ 80006a4:	683b      	ldr	r3, [r7, #0]
+ 80006a6:	781b      	ldrb	r3, [r3, #0]
+ 80006a8:	005b      	lsls	r3, r3, #1
+ 80006aa:	b2db      	uxtb	r3, r3
+ 80006ac:	3301      	adds	r3, #1
+ 80006ae:	b2da      	uxtb	r2, r3
+ 80006b0:	683b      	ldr	r3, [r7, #0]
+ 80006b2:	701a      	strb	r2, [r3, #0]
+ 80006b4:	e001      	b.n	80006ba <DHT11DecodeByte+0x72>
 		}
 		else{
 			return DHT11_DECODE_ERROR;
- 80006ce:	2304      	movs	r3, #4
- 80006d0:	e006      	b.n	80006e0 <DHT11DecodeByte+0x80>
+ 80006b6:	2304      	movs	r3, #4
+ 80006b8:	e006      	b.n	80006c8 <DHT11DecodeByte+0x80>
 	return DHT11_OK;
 }
 uint32_t DHT11DecodeByte(uint32_t * intervals,uint8_t * result){
 	int index;
 	*result=0;
 	for(index=0;index<8;index++){
- 80006d2:	68fb      	ldr	r3, [r7, #12]
- 80006d4:	3301      	adds	r3, #1
- 80006d6:	60fb      	str	r3, [r7, #12]
- 80006d8:	68fb      	ldr	r3, [r7, #12]
- 80006da:	2b07      	cmp	r3, #7
- 80006dc:	ddcb      	ble.n	8000676 <DHT11DecodeByte+0x16>
+ 80006ba:	68fb      	ldr	r3, [r7, #12]
+ 80006bc:	3301      	adds	r3, #1
+ 80006be:	60fb      	str	r3, [r7, #12]
+ 80006c0:	68fb      	ldr	r3, [r7, #12]
+ 80006c2:	2b07      	cmp	r3, #7
+ 80006c4:	ddcb      	ble.n	800065e <DHT11DecodeByte+0x16>
 		}
 		else{
 			return DHT11_DECODE_ERROR;
 		}
 	}
 	return DHT11_OK;
- 80006de:	2300      	movs	r3, #0
+ 80006c6:	2300      	movs	r3, #0
 }
- 80006e0:	4618      	mov	r0, r3
- 80006e2:	3714      	adds	r7, #20
- 80006e4:	46bd      	mov	sp, r7
- 80006e6:	f85d 7b04 	ldr.w	r7, [sp], #4
- 80006ea:	4770      	bx	lr
+ 80006c8:	4618      	mov	r0, r3
+ 80006ca:	3714      	adds	r7, #20
+ 80006cc:	46bd      	mov	sp, r7
+ 80006ce:	f85d 7b04 	ldr.w	r7, [sp], #4
+ 80006d2:	4770      	bx	lr
 
-080006ec <DHT11Decode>:
+080006d4 <DHT11Decode>:
 void DHT11Decode(uint32_t * intervals,DHT11Result * result){
- 80006ec:	b580      	push	{r7, lr}
- 80006ee:	b084      	sub	sp, #16
- 80006f0:	af00      	add	r7, sp, #0
- 80006f2:	6078      	str	r0, [r7, #4]
- 80006f4:	6039      	str	r1, [r7, #0]
+ 80006d4:	b580      	push	{r7, lr}
+ 80006d6:	b084      	sub	sp, #16
+ 80006d8:	af00      	add	r7, sp, #0
+ 80006da:	6078      	str	r0, [r7, #4]
+ 80006dc:	6039      	str	r1, [r7, #0]
 	uint8_t index;
 
 	// decode RH integral
 	uint8_t RH_integral=0;
- 80006f6:	2300      	movs	r3, #0
- 80006f8:	73bb      	strb	r3, [r7, #14]
+ 80006de:	2300      	movs	r3, #0
+ 80006e0:	73bb      	strb	r3, [r7, #14]
 	result->ERROR_CODE=DHT11DecodeByte(&intervals[2],&RH_integral);
- 80006fa:	687b      	ldr	r3, [r7, #4]
- 80006fc:	f103 0208 	add.w	r2, r3, #8
- 8000700:	f107 030e 	add.w	r3, r7, #14
- 8000704:	4610      	mov	r0, r2
- 8000706:	4619      	mov	r1, r3
- 8000708:	f7ff ffaa 	bl	8000660 <DHT11DecodeByte>
- 800070c:	4603      	mov	r3, r0
- 800070e:	461a      	mov	r2, r3
- 8000710:	683b      	ldr	r3, [r7, #0]
- 8000712:	609a      	str	r2, [r3, #8]
+ 80006e2:	687b      	ldr	r3, [r7, #4]
+ 80006e4:	f103 0208 	add.w	r2, r3, #8
+ 80006e8:	f107 030e 	add.w	r3, r7, #14
+ 80006ec:	4610      	mov	r0, r2
+ 80006ee:	4619      	mov	r1, r3
+ 80006f0:	f7ff ffaa 	bl	8000648 <DHT11DecodeByte>
+ 80006f4:	4603      	mov	r3, r0
+ 80006f6:	461a      	mov	r2, r3
+ 80006f8:	683b      	ldr	r3, [r7, #0]
+ 80006fa:	609a      	str	r2, [r3, #8]
 	if(result->ERROR_CODE!=DHT11_OK){ return; }
- 8000714:	683b      	ldr	r3, [r7, #0]
- 8000716:	689b      	ldr	r3, [r3, #8]
- 8000718:	2b00      	cmp	r3, #0
- 800071a:	d000      	beq.n	800071e <DHT11Decode+0x32>
- 800071c:	e081      	b.n	8000822 <DHT11Decode+0x136>
+ 80006fc:	683b      	ldr	r3, [r7, #0]
+ 80006fe:	689b      	ldr	r3, [r3, #8]
+ 8000700:	2b00      	cmp	r3, #0
+ 8000702:	d000      	beq.n	8000706 <DHT11Decode+0x32>
+ 8000704:	e081      	b.n	800080a <DHT11Decode+0x136>
 
 	// decode RH decimal
 	uint8_t RH_decimal=0;
- 800071e:	2300      	movs	r3, #0
- 8000720:	737b      	strb	r3, [r7, #13]
+ 8000706:	2300      	movs	r3, #0
+ 8000708:	737b      	strb	r3, [r7, #13]
 	result->ERROR_CODE=DHT11DecodeByte(&intervals[10],&RH_decimal);
- 8000722:	687b      	ldr	r3, [r7, #4]
- 8000724:	f103 0228 	add.w	r2, r3, #40	; 0x28
- 8000728:	f107 030d 	add.w	r3, r7, #13
- 800072c:	4610      	mov	r0, r2
- 800072e:	4619      	mov	r1, r3
- 8000730:	f7ff ff96 	bl	8000660 <DHT11DecodeByte>
- 8000734:	4603      	mov	r3, r0
- 8000736:	461a      	mov	r2, r3
- 8000738:	683b      	ldr	r3, [r7, #0]
- 800073a:	609a      	str	r2, [r3, #8]
+ 800070a:	687b      	ldr	r3, [r7, #4]
+ 800070c:	f103 0228 	add.w	r2, r3, #40	; 0x28
+ 8000710:	f107 030d 	add.w	r3, r7, #13
+ 8000714:	4610      	mov	r0, r2
+ 8000716:	4619      	mov	r1, r3
+ 8000718:	f7ff ff96 	bl	8000648 <DHT11DecodeByte>
+ 800071c:	4603      	mov	r3, r0
+ 800071e:	461a      	mov	r2, r3
+ 8000720:	683b      	ldr	r3, [r7, #0]
+ 8000722:	609a      	str	r2, [r3, #8]
 	if(result->ERROR_CODE!=DHT11_OK){ return; }
- 800073c:	683b      	ldr	r3, [r7, #0]
- 800073e:	689b      	ldr	r3, [r3, #8]
- 8000740:	2b00      	cmp	r3, #0
- 8000742:	d000      	beq.n	8000746 <DHT11Decode+0x5a>
- 8000744:	e06d      	b.n	8000822 <DHT11Decode+0x136>
+ 8000724:	683b      	ldr	r3, [r7, #0]
+ 8000726:	689b      	ldr	r3, [r3, #8]
+ 8000728:	2b00      	cmp	r3, #0
+ 800072a:	d000      	beq.n	800072e <DHT11Decode+0x5a>
+ 800072c:	e06d      	b.n	800080a <DHT11Decode+0x136>
 
 	//decode T integral
 	uint8_t T_integral=0;
- 8000746:	2300      	movs	r3, #0
- 8000748:	733b      	strb	r3, [r7, #12]
+ 800072e:	2300      	movs	r3, #0
+ 8000730:	733b      	strb	r3, [r7, #12]
 	result->ERROR_CODE=DHT11DecodeByte(&intervals[18],&T_integral);
- 800074a:	687b      	ldr	r3, [r7, #4]
- 800074c:	f103 0248 	add.w	r2, r3, #72	; 0x48
- 8000750:	f107 030c 	add.w	r3, r7, #12
- 8000754:	4610      	mov	r0, r2
- 8000756:	4619      	mov	r1, r3
- 8000758:	f7ff ff82 	bl	8000660 <DHT11DecodeByte>
- 800075c:	4603      	mov	r3, r0
- 800075e:	461a      	mov	r2, r3
- 8000760:	683b      	ldr	r3, [r7, #0]
- 8000762:	609a      	str	r2, [r3, #8]
+ 8000732:	687b      	ldr	r3, [r7, #4]
+ 8000734:	f103 0248 	add.w	r2, r3, #72	; 0x48
+ 8000738:	f107 030c 	add.w	r3, r7, #12
+ 800073c:	4610      	mov	r0, r2
+ 800073e:	4619      	mov	r1, r3
+ 8000740:	f7ff ff82 	bl	8000648 <DHT11DecodeByte>
+ 8000744:	4603      	mov	r3, r0
+ 8000746:	461a      	mov	r2, r3
+ 8000748:	683b      	ldr	r3, [r7, #0]
+ 800074a:	609a      	str	r2, [r3, #8]
 	if(result->ERROR_CODE!=DHT11_OK){ return; }
- 8000764:	683b      	ldr	r3, [r7, #0]
- 8000766:	689b      	ldr	r3, [r3, #8]
- 8000768:	2b00      	cmp	r3, #0
- 800076a:	d000      	beq.n	800076e <DHT11Decode+0x82>
- 800076c:	e059      	b.n	8000822 <DHT11Decode+0x136>
+ 800074c:	683b      	ldr	r3, [r7, #0]
+ 800074e:	689b      	ldr	r3, [r3, #8]
+ 8000750:	2b00      	cmp	r3, #0
+ 8000752:	d000      	beq.n	8000756 <DHT11Decode+0x82>
+ 8000754:	e059      	b.n	800080a <DHT11Decode+0x136>
 
 	//decode T decimal
 	uint8_t T_decimal=0;
- 800076e:	2300      	movs	r3, #0
- 8000770:	72fb      	strb	r3, [r7, #11]
+ 8000756:	2300      	movs	r3, #0
+ 8000758:	72fb      	strb	r3, [r7, #11]
 	result->ERROR_CODE=DHT11DecodeByte(&intervals[26],&T_decimal);
- 8000772:	687b      	ldr	r3, [r7, #4]
- 8000774:	f103 0268 	add.w	r2, r3, #104	; 0x68
- 8000778:	f107 030b 	add.w	r3, r7, #11
- 800077c:	4610      	mov	r0, r2
- 800077e:	4619      	mov	r1, r3
- 8000780:	f7ff ff6e 	bl	8000660 <DHT11DecodeByte>
- 8000784:	4603      	mov	r3, r0
- 8000786:	461a      	mov	r2, r3
- 8000788:	683b      	ldr	r3, [r7, #0]
- 800078a:	609a      	str	r2, [r3, #8]
+ 800075a:	687b      	ldr	r3, [r7, #4]
+ 800075c:	f103 0268 	add.w	r2, r3, #104	; 0x68
+ 8000760:	f107 030b 	add.w	r3, r7, #11
+ 8000764:	4610      	mov	r0, r2
+ 8000766:	4619      	mov	r1, r3
+ 8000768:	f7ff ff6e 	bl	8000648 <DHT11DecodeByte>
+ 800076c:	4603      	mov	r3, r0
+ 800076e:	461a      	mov	r2, r3
+ 8000770:	683b      	ldr	r3, [r7, #0]
+ 8000772:	609a      	str	r2, [r3, #8]
 	if(result->ERROR_CODE!=DHT11_OK){ return; }
- 800078c:	683b      	ldr	r3, [r7, #0]
- 800078e:	689b      	ldr	r3, [r3, #8]
- 8000790:	2b00      	cmp	r3, #0
- 8000792:	d000      	beq.n	8000796 <DHT11Decode+0xaa>
- 8000794:	e045      	b.n	8000822 <DHT11Decode+0x136>
+ 8000774:	683b      	ldr	r3, [r7, #0]
+ 8000776:	689b      	ldr	r3, [r3, #8]
+ 8000778:	2b00      	cmp	r3, #0
+ 800077a:	d000      	beq.n	800077e <DHT11Decode+0xaa>
+ 800077c:	e045      	b.n	800080a <DHT11Decode+0x136>
 
 	//decode CRC
 	uint8_t CRC_value=0;
- 8000796:	2300      	movs	r3, #0
- 8000798:	72bb      	strb	r3, [r7, #10]
+ 800077e:	2300      	movs	r3, #0
+ 8000780:	72bb      	strb	r3, [r7, #10]
 	result->ERROR_CODE=DHT11DecodeByte(&intervals[34],&CRC_value);
- 800079a:	687b      	ldr	r3, [r7, #4]
- 800079c:	f103 0288 	add.w	r2, r3, #136	; 0x88
- 80007a0:	f107 030a 	add.w	r3, r7, #10
- 80007a4:	4610      	mov	r0, r2
- 80007a6:	4619      	mov	r1, r3
- 80007a8:	f7ff ff5a 	bl	8000660 <DHT11DecodeByte>
- 80007ac:	4603      	mov	r3, r0
- 80007ae:	461a      	mov	r2, r3
- 80007b0:	683b      	ldr	r3, [r7, #0]
- 80007b2:	609a      	str	r2, [r3, #8]
+ 8000782:	687b      	ldr	r3, [r7, #4]
+ 8000784:	f103 0288 	add.w	r2, r3, #136	; 0x88
+ 8000788:	f107 030a 	add.w	r3, r7, #10
+ 800078c:	4610      	mov	r0, r2
+ 800078e:	4619      	mov	r1, r3
+ 8000790:	f7ff ff5a 	bl	8000648 <DHT11DecodeByte>
+ 8000794:	4603      	mov	r3, r0
+ 8000796:	461a      	mov	r2, r3
+ 8000798:	683b      	ldr	r3, [r7, #0]
+ 800079a:	609a      	str	r2, [r3, #8]
 	if(result->ERROR_CODE!=DHT11_OK){ return; }
- 80007b4:	683b      	ldr	r3, [r7, #0]
- 80007b6:	689b      	ldr	r3, [r3, #8]
- 80007b8:	2b00      	cmp	r3, #0
- 80007ba:	d000      	beq.n	80007be <DHT11Decode+0xd2>
- 80007bc:	e031      	b.n	8000822 <DHT11Decode+0x136>
+ 800079c:	683b      	ldr	r3, [r7, #0]
+ 800079e:	689b      	ldr	r3, [r3, #8]
+ 80007a0:	2b00      	cmp	r3, #0
+ 80007a2:	d000      	beq.n	80007a6 <DHT11Decode+0xd2>
+ 80007a4:	e031      	b.n	800080a <DHT11Decode+0x136>
 
 	//check CRC
 	uint8_t countedCRC=T_integral+T_decimal+RH_decimal+RH_integral;
- 80007be:	7b3a      	ldrb	r2, [r7, #12]
- 80007c0:	7afb      	ldrb	r3, [r7, #11]
- 80007c2:	4413      	add	r3, r2
- 80007c4:	b2da      	uxtb	r2, r3
- 80007c6:	7b7b      	ldrb	r3, [r7, #13]
- 80007c8:	4413      	add	r3, r2
- 80007ca:	b2da      	uxtb	r2, r3
- 80007cc:	7bbb      	ldrb	r3, [r7, #14]
- 80007ce:	4413      	add	r3, r2
- 80007d0:	73fb      	strb	r3, [r7, #15]
+ 80007a6:	7b3a      	ldrb	r2, [r7, #12]
+ 80007a8:	7afb      	ldrb	r3, [r7, #11]
+ 80007aa:	4413      	add	r3, r2
+ 80007ac:	b2da      	uxtb	r2, r3
+ 80007ae:	7b7b      	ldrb	r3, [r7, #13]
+ 80007b0:	4413      	add	r3, r2
+ 80007b2:	b2da      	uxtb	r2, r3
+ 80007b4:	7bbb      	ldrb	r3, [r7, #14]
+ 80007b6:	4413      	add	r3, r2
+ 80007b8:	73fb      	strb	r3, [r7, #15]
 	if(countedCRC!=CRC_value){
- 80007d2:	7abb      	ldrb	r3, [r7, #10]
- 80007d4:	7bfa      	ldrb	r2, [r7, #15]
- 80007d6:	429a      	cmp	r2, r3
- 80007d8:	d003      	beq.n	80007e2 <DHT11Decode+0xf6>
+ 80007ba:	7abb      	ldrb	r3, [r7, #10]
+ 80007bc:	7bfa      	ldrb	r2, [r7, #15]
+ 80007be:	429a      	cmp	r2, r3
+ 80007c0:	d003      	beq.n	80007ca <DHT11Decode+0xf6>
 		result->ERROR_CODE=DHT11_CRC_ERROR;
- 80007da:	683b      	ldr	r3, [r7, #0]
- 80007dc:	2201      	movs	r2, #1
- 80007de:	609a      	str	r2, [r3, #8]
+ 80007c2:	683b      	ldr	r3, [r7, #0]
+ 80007c4:	2201      	movs	r2, #1
+ 80007c6:	609a      	str	r2, [r3, #8]
 		return;
- 80007e0:	e01f      	b.n	8000822 <DHT11Decode+0x136>
+ 80007c8:	e01f      	b.n	800080a <DHT11Decode+0x136>
 	}
 
 	//join decimal with integral (compability with dht-22)
 	result->humidity=(float)(RH_decimal/10+RH_integral);
- 80007e2:	7b7a      	ldrb	r2, [r7, #13]
- 80007e4:	4b10      	ldr	r3, [pc, #64]	; (8000828 <DHT11Decode+0x13c>)
- 80007e6:	fba3 1302 	umull	r1, r3, r3, r2
- 80007ea:	08db      	lsrs	r3, r3, #3
- 80007ec:	b2db      	uxtb	r3, r3
- 80007ee:	461a      	mov	r2, r3
- 80007f0:	7bbb      	ldrb	r3, [r7, #14]
- 80007f2:	4413      	add	r3, r2
- 80007f4:	ee07 3a10 	vmov	s14, r3
- 80007f8:	eef8 7ac7 	vcvt.f32.s32	s15, s14
- 80007fc:	683b      	ldr	r3, [r7, #0]
- 80007fe:	edc3 7a01 	vstr	s15, [r3, #4]
+ 80007ca:	7b7a      	ldrb	r2, [r7, #13]
+ 80007cc:	4b10      	ldr	r3, [pc, #64]	; (8000810 <DHT11Decode+0x13c>)
+ 80007ce:	fba3 1302 	umull	r1, r3, r3, r2
+ 80007d2:	08db      	lsrs	r3, r3, #3
+ 80007d4:	b2db      	uxtb	r3, r3
+ 80007d6:	461a      	mov	r2, r3
+ 80007d8:	7bbb      	ldrb	r3, [r7, #14]
+ 80007da:	4413      	add	r3, r2
+ 80007dc:	ee07 3a10 	vmov	s14, r3
+ 80007e0:	eef8 7ac7 	vcvt.f32.s32	s15, s14
+ 80007e4:	683b      	ldr	r3, [r7, #0]
+ 80007e6:	edc3 7a01 	vstr	s15, [r3, #4]
 	result->temperature=(float)(T_decimal/10+T_integral);
- 8000802:	7afa      	ldrb	r2, [r7, #11]
- 8000804:	4b08      	ldr	r3, [pc, #32]	; (8000828 <DHT11Decode+0x13c>)
- 8000806:	fba3 1302 	umull	r1, r3, r3, r2
- 800080a:	08db      	lsrs	r3, r3, #3
- 800080c:	b2db      	uxtb	r3, r3
- 800080e:	461a      	mov	r2, r3
- 8000810:	7b3b      	ldrb	r3, [r7, #12]
- 8000812:	4413      	add	r3, r2
- 8000814:	ee07 3a10 	vmov	s14, r3
- 8000818:	eef8 7ac7 	vcvt.f32.s32	s15, s14
- 800081c:	683b      	ldr	r3, [r7, #0]
- 800081e:	edc3 7a00 	vstr	s15, [r3]
+ 80007ea:	7afa      	ldrb	r2, [r7, #11]
+ 80007ec:	4b08      	ldr	r3, [pc, #32]	; (8000810 <DHT11Decode+0x13c>)
+ 80007ee:	fba3 1302 	umull	r1, r3, r3, r2
+ 80007f2:	08db      	lsrs	r3, r3, #3
+ 80007f4:	b2db      	uxtb	r3, r3
+ 80007f6:	461a      	mov	r2, r3
+ 80007f8:	7b3b      	ldrb	r3, [r7, #12]
+ 80007fa:	4413      	add	r3, r2
+ 80007fc:	ee07 3a10 	vmov	s14, r3
+ 8000800:	eef8 7ac7 	vcvt.f32.s32	s15, s14
+ 8000804:	683b      	ldr	r3, [r7, #0]
+ 8000806:	edc3 7a00 	vstr	s15, [r3]
 }
- 8000822:	3710      	adds	r7, #16
- 8000824:	46bd      	mov	sp, r7
- 8000826:	bd80      	pop	{r7, pc}
- 8000828:	cccccccd 	.word	0xcccccccd
+ 800080a:	3710      	adds	r7, #16
+ 800080c:	46bd      	mov	sp, r7
+ 800080e:	bd80      	pop	{r7, pc}
+ 8000810:	cccccccd 	.word	0xcccccccd
 
-0800082c <DHT11_read>:
+08000814 <DHT11_read>:
 DHT11Result DHT11_read(){
- 800082c:	b580      	push	{r7, lr}
- 800082e:	b0b0      	sub	sp, #192	; 0xc0
- 8000830:	af00      	add	r7, sp, #0
- 8000832:	6078      	str	r0, [r7, #4]
+ 8000814:	b580      	push	{r7, lr}
+ 8000816:	b0b0      	sub	sp, #192	; 0xc0
+ 8000818:	af00      	add	r7, sp, #0
+ 800081a:	6078      	str	r0, [r7, #4]
 	uint32_t intervals[42];
 
 	// check if port D enable if not enable it
 	if((RCC->AHB1ENR & RCC_AHB1Periph_GPIOG)==0){
- 8000834:	4b19      	ldr	r3, [pc, #100]	; (800089c <DHT11_read+0x70>)
- 8000836:	6b1b      	ldr	r3, [r3, #48]	; 0x30
- 8000838:	f003 0340 	and.w	r3, r3, #64	; 0x40
- 800083c:	2b00      	cmp	r3, #0
- 800083e:	d105      	bne.n	800084c <DHT11_read+0x20>
+ 800081c:	4b19      	ldr	r3, [pc, #100]	; (8000884 <DHT11_read+0x70>)
+ 800081e:	6b1b      	ldr	r3, [r3, #48]	; 0x30
+ 8000820:	f003 0340 	and.w	r3, r3, #64	; 0x40
+ 8000824:	2b00      	cmp	r3, #0
+ 8000826:	d105      	bne.n	8000834 <DHT11_read+0x20>
 		RCC->AHB1ENR |= RCC_AHB1Periph_GPIOG;
- 8000840:	4b16      	ldr	r3, [pc, #88]	; (800089c <DHT11_read+0x70>)
- 8000842:	4a16      	ldr	r2, [pc, #88]	; (800089c <DHT11_read+0x70>)
- 8000844:	6b12      	ldr	r2, [r2, #48]	; 0x30
- 8000846:	f042 0240 	orr.w	r2, r2, #64	; 0x40
- 800084a:	631a      	str	r2, [r3, #48]	; 0x30
+ 8000828:	4b16      	ldr	r3, [pc, #88]	; (8000884 <DHT11_read+0x70>)
+ 800082a:	4a16      	ldr	r2, [pc, #88]	; (8000884 <DHT11_read+0x70>)
+ 800082c:	6b12      	ldr	r2, [r2, #48]	; 0x30
+ 800082e:	f042 0240 	orr.w	r2, r2, #64	; 0x40
+ 8000832:	631a      	str	r2, [r3, #48]	; 0x30
 
 	DHT11Result result;
 
 
 	// HOW TO DISABLE INTERRUPTS ?
 	DHT11InitTimer();
- 800084c:	f7ff fdee 	bl	800042c <DHT11InitTimer>
+ 8000834:	f7ff fdfa 	bl	800042c <DHT11InitTimer>
 	DHT11SentStartRequest();
- 8000850:	f7ff fe22 	bl	8000498 <DHT11SentStartRequest>
+ 8000838:	f7ff fe2e 	bl	8000498 <DHT11SentStartRequest>
 	result.ERROR_CODE=DHT11RecvData(intervals);
- 8000854:	f107 0318 	add.w	r3, r7, #24
- 8000858:	4618      	mov	r0, r3
- 800085a:	f7ff fe85 	bl	8000568 <DHT11RecvData>
- 800085e:	4603      	mov	r3, r0
- 8000860:	617b      	str	r3, [r7, #20]
+ 800083c:	f107 0318 	add.w	r3, r7, #24
+ 8000840:	4618      	mov	r0, r3
+ 8000842:	f7ff fe91 	bl	8000568 <DHT11RecvData>
+ 8000846:	4603      	mov	r3, r0
+ 8000848:	617b      	str	r3, [r7, #20]
 
 	// disable timer2
 	TIM2->CR1 &= ~0x00000001;
- 8000862:	f04f 4380 	mov.w	r3, #1073741824	; 0x40000000
- 8000866:	f04f 4280 	mov.w	r2, #1073741824	; 0x40000000
- 800086a:	8812      	ldrh	r2, [r2, #0]
- 800086c:	b292      	uxth	r2, r2
- 800086e:	f022 0201 	bic.w	r2, r2, #1
- 8000872:	b292      	uxth	r2, r2
- 8000874:	801a      	strh	r2, [r3, #0]
+ 800084a:	f04f 4380 	mov.w	r3, #1073741824	; 0x40000000
+ 800084e:	f04f 4280 	mov.w	r2, #1073741824	; 0x40000000
+ 8000852:	8812      	ldrh	r2, [r2, #0]
+ 8000854:	b292      	uxth	r2, r2
+ 8000856:	f022 0201 	bic.w	r2, r2, #1
+ 800085a:	b292      	uxth	r2, r2
+ 800085c:	801a      	strh	r2, [r3, #0]
 
 	DHT11Decode(intervals,&result);
- 8000876:	f107 0218 	add.w	r2, r7, #24
- 800087a:	f107 030c 	add.w	r3, r7, #12
- 800087e:	4610      	mov	r0, r2
- 8000880:	4619      	mov	r1, r3
- 8000882:	f7ff ff33 	bl	80006ec <DHT11Decode>
+ 800085e:	f107 0218 	add.w	r2, r7, #24
+ 8000862:	f107 030c 	add.w	r3, r7, #12
+ 8000866:	4610      	mov	r0, r2
+ 8000868:	4619      	mov	r1, r3
+ 800086a:	f7ff ff33 	bl	80006d4 <DHT11Decode>
 
 	return result;
- 8000886:	687b      	ldr	r3, [r7, #4]
- 8000888:	f107 020c 	add.w	r2, r7, #12
- 800088c:	ca07      	ldmia	r2, {r0, r1, r2}
- 800088e:	e883 0007 	stmia.w	r3, {r0, r1, r2}
+ 800086e:	687b      	ldr	r3, [r7, #4]
+ 8000870:	f107 020c 	add.w	r2, r7, #12
+ 8000874:	ca07      	ldmia	r2, {r0, r1, r2}
+ 8000876:	e883 0007 	stmia.w	r3, {r0, r1, r2}
 }
- 8000892:	6878      	ldr	r0, [r7, #4]
- 8000894:	37c0      	adds	r7, #192	; 0xc0
- 8000896:	46bd      	mov	sp, r7
- 8000898:	bd80      	pop	{r7, pc}
- 800089a:	bf00      	nop
- 800089c:	40023800 	.word	0x40023800
+ 800087a:	6878      	ldr	r0, [r7, #4]
+ 800087c:	37c0      	adds	r7, #192	; 0xc0
+ 800087e:	46bd      	mov	sp, r7
+ 8000880:	bd80      	pop	{r7, pc}
+ 8000882:	bf00      	nop
+ 8000884:	40023800 	.word	0x40023800
 
-080008a0 <DMA1_Stream4_IRQHandler>:
+08000888 <DMA1_Stream4_IRQHandler>:
   * @brief  This function handles the DMA Tx Channel interrupt Handler.
   * @param  None
   * @retval None
   */
 void sEE_I2C_DMA_TX_IRQHandler(void)
 {
- 80008a0:	b580      	push	{r7, lr}
- 80008a2:	af00      	add	r7, sp, #0
+ 8000888:	b580      	push	{r7, lr}
+ 800088a:	af00      	add	r7, sp, #0
   /* Check if the DMA transfer is complete */
   if(DMA_GetFlagStatus(sEE_I2C_DMA_STREAM_TX, sEE_TX_DMA_FLAG_TCIF) != RESET)
- 80008a4:	4816      	ldr	r0, [pc, #88]	; (8000900 <DMA1_Stream4_IRQHandler+0x60>)
- 80008a6:	4917      	ldr	r1, [pc, #92]	; (8000904 <DMA1_Stream4_IRQHandler+0x64>)
- 80008a8:	f000 f8c8 	bl	8000a3c <DMA_GetFlagStatus>
- 80008ac:	4603      	mov	r3, r0
- 80008ae:	2b00      	cmp	r3, #0
- 80008b0:	d024      	beq.n	80008fc <DMA1_Stream4_IRQHandler+0x5c>
+ 800088c:	4816      	ldr	r0, [pc, #88]	; (80008e8 <DMA1_Stream4_IRQHandler+0x60>)
+ 800088e:	4917      	ldr	r1, [pc, #92]	; (80008ec <DMA1_Stream4_IRQHandler+0x64>)
+ 8000890:	f000 f8c8 	bl	8000a24 <DMA_GetFlagStatus>
+ 8000894:	4603      	mov	r3, r0
+ 8000896:	2b00      	cmp	r3, #0
+ 8000898:	d024      	beq.n	80008e4 <DMA1_Stream4_IRQHandler+0x5c>
   {  
     /* Disable the DMA Tx Stream and Clear TC flag */  
     DMA_Cmd(sEE_I2C_DMA_STREAM_TX, DISABLE);
- 80008b2:	4813      	ldr	r0, [pc, #76]	; (8000900 <DMA1_Stream4_IRQHandler+0x60>)
- 80008b4:	2100      	movs	r1, #0
- 80008b6:	f000 f8a5 	bl	8000a04 <DMA_Cmd>
+ 800089a:	4813      	ldr	r0, [pc, #76]	; (80008e8 <DMA1_Stream4_IRQHandler+0x60>)
+ 800089c:	2100      	movs	r1, #0
+ 800089e:	f000 f8a5 	bl	80009ec <DMA_Cmd>
     DMA_ClearFlag(sEE_I2C_DMA_STREAM_TX, sEE_TX_DMA_FLAG_TCIF);
- 80008ba:	4811      	ldr	r0, [pc, #68]	; (8000900 <DMA1_Stream4_IRQHandler+0x60>)
- 80008bc:	4911      	ldr	r1, [pc, #68]	; (8000904 <DMA1_Stream4_IRQHandler+0x64>)
- 80008be:	f000 f8f9 	bl	8000ab4 <DMA_ClearFlag>
+ 80008a2:	4811      	ldr	r0, [pc, #68]	; (80008e8 <DMA1_Stream4_IRQHandler+0x60>)
+ 80008a4:	4911      	ldr	r1, [pc, #68]	; (80008ec <DMA1_Stream4_IRQHandler+0x64>)
+ 80008a6:	f000 f8f9 	bl	8000a9c <DMA_ClearFlag>
 
     /*!< Wait till all data have been physically transferred on the bus */
     sEETimeout = sEE_LONG_TIMEOUT;
- 80008c2:	4b11      	ldr	r3, [pc, #68]	; (8000908 <DMA1_Stream4_IRQHandler+0x68>)
- 80008c4:	f44f 4220 	mov.w	r2, #40960	; 0xa000
- 80008c8:	601a      	str	r2, [r3, #0]
+ 80008aa:	4b11      	ldr	r3, [pc, #68]	; (80008f0 <DMA1_Stream4_IRQHandler+0x68>)
+ 80008ac:	f44f 4220 	mov.w	r2, #40960	; 0xa000
+ 80008b0:	601a      	str	r2, [r3, #0]
     while(!I2C_GetFlagStatus(sEE_I2C, I2C_FLAG_BTF))
- 80008ca:	e008      	b.n	80008de <DMA1_Stream4_IRQHandler+0x3e>
+ 80008b2:	e008      	b.n	80008c6 <DMA1_Stream4_IRQHandler+0x3e>
     {
       if((sEETimeout--) == 0) sEE_TIMEOUT_UserCallback();
- 80008cc:	4b0e      	ldr	r3, [pc, #56]	; (8000908 <DMA1_Stream4_IRQHandler+0x68>)
- 80008ce:	681b      	ldr	r3, [r3, #0]
- 80008d0:	1e59      	subs	r1, r3, #1
- 80008d2:	4a0d      	ldr	r2, [pc, #52]	; (8000908 <DMA1_Stream4_IRQHandler+0x68>)
- 80008d4:	6011      	str	r1, [r2, #0]
- 80008d6:	2b00      	cmp	r3, #0
- 80008d8:	d101      	bne.n	80008de <DMA1_Stream4_IRQHandler+0x3e>
- 80008da:	f7ff fda3 	bl	8000424 <sEE_TIMEOUT_UserCallback>
+ 80008b4:	4b0e      	ldr	r3, [pc, #56]	; (80008f0 <DMA1_Stream4_IRQHandler+0x68>)
+ 80008b6:	681b      	ldr	r3, [r3, #0]
+ 80008b8:	1e59      	subs	r1, r3, #1
+ 80008ba:	4a0d      	ldr	r2, [pc, #52]	; (80008f0 <DMA1_Stream4_IRQHandler+0x68>)
+ 80008bc:	6011      	str	r1, [r2, #0]
+ 80008be:	2b00      	cmp	r3, #0
+ 80008c0:	d101      	bne.n	80008c6 <DMA1_Stream4_IRQHandler+0x3e>
+ 80008c2:	f7ff fdaf 	bl	8000424 <sEE_TIMEOUT_UserCallback>
     DMA_Cmd(sEE_I2C_DMA_STREAM_TX, DISABLE);
     DMA_ClearFlag(sEE_I2C_DMA_STREAM_TX, sEE_TX_DMA_FLAG_TCIF);
 
     /*!< Wait till all data have been physically transferred on the bus */
     sEETimeout = sEE_LONG_TIMEOUT;
     while(!I2C_GetFlagStatus(sEE_I2C, I2C_FLAG_BTF))
- 80008de:	480b      	ldr	r0, [pc, #44]	; (800090c <DMA1_Stream4_IRQHandler+0x6c>)
- 80008e0:	490b      	ldr	r1, [pc, #44]	; (8000910 <DMA1_Stream4_IRQHandler+0x70>)
- 80008e2:	f000 f85b 	bl	800099c <I2C_GetFlagStatus>
- 80008e6:	4603      	mov	r3, r0
- 80008e8:	2b00      	cmp	r3, #0
- 80008ea:	d0ef      	beq.n	80008cc <DMA1_Stream4_IRQHandler+0x2c>
+ 80008c6:	480b      	ldr	r0, [pc, #44]	; (80008f4 <DMA1_Stream4_IRQHandler+0x6c>)
+ 80008c8:	490b      	ldr	r1, [pc, #44]	; (80008f8 <DMA1_Stream4_IRQHandler+0x70>)
+ 80008ca:	f000 f85b 	bl	8000984 <I2C_GetFlagStatus>
+ 80008ce:	4603      	mov	r3, r0
+ 80008d0:	2b00      	cmp	r3, #0
+ 80008d2:	d0ef      	beq.n	80008b4 <DMA1_Stream4_IRQHandler+0x2c>
     {
       if((sEETimeout--) == 0) sEE_TIMEOUT_UserCallback();
     }
     
     /*!< Send STOP condition */
     I2C_GenerateSTOP(sEE_I2C, ENABLE);
- 80008ec:	4807      	ldr	r0, [pc, #28]	; (800090c <DMA1_Stream4_IRQHandler+0x6c>)
- 80008ee:	2101      	movs	r1, #1
- 80008f0:	f000 f834 	bl	800095c <I2C_GenerateSTOP>
+ 80008d4:	4807      	ldr	r0, [pc, #28]	; (80008f4 <DMA1_Stream4_IRQHandler+0x6c>)
+ 80008d6:	2101      	movs	r1, #1
+ 80008d8:	f000 f834 	bl	8000944 <I2C_GenerateSTOP>
     
     /* Reset the variable holding the number of data to be written */
     *sEEDataWritePointer = 0;  
- 80008f4:	4b07      	ldr	r3, [pc, #28]	; (8000914 <DMA1_Stream4_IRQHandler+0x74>)
- 80008f6:	681b      	ldr	r3, [r3, #0]
- 80008f8:	2200      	movs	r2, #0
- 80008fa:	701a      	strb	r2, [r3, #0]
+ 80008dc:	4b07      	ldr	r3, [pc, #28]	; (80008fc <DMA1_Stream4_IRQHandler+0x74>)
+ 80008de:	681b      	ldr	r3, [r3, #0]
+ 80008e0:	2200      	movs	r2, #0
+ 80008e2:	701a      	strb	r2, [r3, #0]
   }
 }
- 80008fc:	bd80      	pop	{r7, pc}
- 80008fe:	bf00      	nop
- 8000900:	40026070 	.word	0x40026070
- 8000904:	20000020 	.word	0x20000020
- 8000908:	20000004 	.word	0x20000004
- 800090c:	40005c00 	.word	0x40005c00
- 8000910:	10000004 	.word	0x10000004
- 8000914:	20000024 	.word	0x20000024
+ 80008e4:	bd80      	pop	{r7, pc}
+ 80008e6:	bf00      	nop
+ 80008e8:	40026070 	.word	0x40026070
+ 80008ec:	20000020 	.word	0x20000020
+ 80008f0:	20000004 	.word	0x20000004
+ 80008f4:	40005c00 	.word	0x40005c00
+ 80008f8:	10000004 	.word	0x10000004
+ 80008fc:	20000024 	.word	0x20000024
 
-08000918 <DMA1_Stream2_IRQHandler>:
+08000900 <DMA1_Stream2_IRQHandler>:
   * @brief  This function handles the DMA Rx Channel interrupt Handler.
   * @param  None
   * @retval None
   */
 void sEE_I2C_DMA_RX_IRQHandler(void)
 {
- 8000918:	b580      	push	{r7, lr}
- 800091a:	af00      	add	r7, sp, #0
+ 8000900:	b580      	push	{r7, lr}
+ 8000902:	af00      	add	r7, sp, #0
   /* Check if the DMA transfer is complete */
   if(DMA_GetFlagStatus(sEE_I2C_DMA_STREAM_RX, sEE_RX_DMA_FLAG_TCIF) != RESET)
- 800091c:	480c      	ldr	r0, [pc, #48]	; (8000950 <DMA1_Stream2_IRQHandler+0x38>)
- 800091e:	f04f 5181 	mov.w	r1, #270532608	; 0x10200000
- 8000922:	f000 f88b 	bl	8000a3c <DMA_GetFlagStatus>
- 8000926:	4603      	mov	r3, r0
- 8000928:	2b00      	cmp	r3, #0
- 800092a:	d010      	beq.n	800094e <DMA1_Stream2_IRQHandler+0x36>
+ 8000904:	480c      	ldr	r0, [pc, #48]	; (8000938 <DMA1_Stream2_IRQHandler+0x38>)
+ 8000906:	f04f 5181 	mov.w	r1, #270532608	; 0x10200000
+ 800090a:	f000 f88b 	bl	8000a24 <DMA_GetFlagStatus>
+ 800090e:	4603      	mov	r3, r0
+ 8000910:	2b00      	cmp	r3, #0
+ 8000912:	d010      	beq.n	8000936 <DMA1_Stream2_IRQHandler+0x36>
   {      
     /*!< Send STOP Condition */
     I2C_GenerateSTOP(sEE_I2C, ENABLE);    
- 800092c:	4809      	ldr	r0, [pc, #36]	; (8000954 <DMA1_Stream2_IRQHandler+0x3c>)
- 800092e:	2101      	movs	r1, #1
- 8000930:	f000 f814 	bl	800095c <I2C_GenerateSTOP>
+ 8000914:	4809      	ldr	r0, [pc, #36]	; (800093c <DMA1_Stream2_IRQHandler+0x3c>)
+ 8000916:	2101      	movs	r1, #1
+ 8000918:	f000 f814 	bl	8000944 <I2C_GenerateSTOP>
     
     /* Disable the DMA Rx Stream and Clear TC Flag */  
     DMA_Cmd(sEE_I2C_DMA_STREAM_RX, DISABLE);
- 8000934:	4806      	ldr	r0, [pc, #24]	; (8000950 <DMA1_Stream2_IRQHandler+0x38>)
- 8000936:	2100      	movs	r1, #0
- 8000938:	f000 f864 	bl	8000a04 <DMA_Cmd>
+ 800091c:	4806      	ldr	r0, [pc, #24]	; (8000938 <DMA1_Stream2_IRQHandler+0x38>)
+ 800091e:	2100      	movs	r1, #0
+ 8000920:	f000 f864 	bl	80009ec <DMA_Cmd>
     DMA_ClearFlag(sEE_I2C_DMA_STREAM_RX, sEE_RX_DMA_FLAG_TCIF);
- 800093c:	4804      	ldr	r0, [pc, #16]	; (8000950 <DMA1_Stream2_IRQHandler+0x38>)
- 800093e:	f04f 5181 	mov.w	r1, #270532608	; 0x10200000
- 8000942:	f000 f8b7 	bl	8000ab4 <DMA_ClearFlag>
+ 8000924:	4804      	ldr	r0, [pc, #16]	; (8000938 <DMA1_Stream2_IRQHandler+0x38>)
+ 8000926:	f04f 5181 	mov.w	r1, #270532608	; 0x10200000
+ 800092a:	f000 f8b7 	bl	8000a9c <DMA_ClearFlag>
     
     /* Reset the variable holding the number of data to be read */
     *sEEDataReadPointer = 0;
- 8000946:	4b04      	ldr	r3, [pc, #16]	; (8000958 <DMA1_Stream2_IRQHandler+0x40>)
- 8000948:	681b      	ldr	r3, [r3, #0]
- 800094a:	2200      	movs	r2, #0
- 800094c:	801a      	strh	r2, [r3, #0]
+ 800092e:	4b04      	ldr	r3, [pc, #16]	; (8000940 <DMA1_Stream2_IRQHandler+0x40>)
+ 8000930:	681b      	ldr	r3, [r3, #0]
+ 8000932:	2200      	movs	r2, #0
+ 8000934:	801a      	strh	r2, [r3, #0]
   }
 }
- 800094e:	bd80      	pop	{r7, pc}
- 8000950:	40026040 	.word	0x40026040
- 8000954:	40005c00 	.word	0x40005c00
- 8000958:	2000002c 	.word	0x2000002c
+ 8000936:	bd80      	pop	{r7, pc}
+ 8000938:	40026040 	.word	0x40026040
+ 800093c:	40005c00 	.word	0x40005c00
+ 8000940:	2000002c 	.word	0x2000002c
 
-0800095c <I2C_GenerateSTOP>:
+08000944 <I2C_GenerateSTOP>:
   * @param  NewState: new state of the I2C STOP condition generation.
   *          This parameter can be: ENABLE or DISABLE.
   * @retval None.
   */
 void I2C_GenerateSTOP(I2C_TypeDef* I2Cx, FunctionalState NewState)
 {
- 800095c:	b480      	push	{r7}
- 800095e:	b083      	sub	sp, #12
- 8000960:	af00      	add	r7, sp, #0
- 8000962:	6078      	str	r0, [r7, #4]
- 8000964:	460b      	mov	r3, r1
- 8000966:	70fb      	strb	r3, [r7, #3]
+ 8000944:	b480      	push	{r7}
+ 8000946:	b083      	sub	sp, #12
+ 8000948:	af00      	add	r7, sp, #0
+ 800094a:	6078      	str	r0, [r7, #4]
+ 800094c:	460b      	mov	r3, r1
+ 800094e:	70fb      	strb	r3, [r7, #3]
   /* Check the parameters */
   assert_param(IS_I2C_ALL_PERIPH(I2Cx));
   assert_param(IS_FUNCTIONAL_STATE(NewState));
   if (NewState != DISABLE)
- 8000968:	78fb      	ldrb	r3, [r7, #3]
- 800096a:	2b00      	cmp	r3, #0
- 800096c:	d008      	beq.n	8000980 <I2C_GenerateSTOP+0x24>
+ 8000950:	78fb      	ldrb	r3, [r7, #3]
+ 8000952:	2b00      	cmp	r3, #0
+ 8000954:	d008      	beq.n	8000968 <I2C_GenerateSTOP+0x24>
   {
     /* Generate a STOP condition */
     I2Cx->CR1 |= I2C_CR1_STOP;
- 800096e:	687b      	ldr	r3, [r7, #4]
- 8000970:	881b      	ldrh	r3, [r3, #0]
- 8000972:	b29b      	uxth	r3, r3
- 8000974:	f443 7300 	orr.w	r3, r3, #512	; 0x200
- 8000978:	b29a      	uxth	r2, r3
- 800097a:	687b      	ldr	r3, [r7, #4]
- 800097c:	801a      	strh	r2, [r3, #0]
- 800097e:	e007      	b.n	8000990 <I2C_GenerateSTOP+0x34>
+ 8000956:	687b      	ldr	r3, [r7, #4]
+ 8000958:	881b      	ldrh	r3, [r3, #0]
+ 800095a:	b29b      	uxth	r3, r3
+ 800095c:	f443 7300 	orr.w	r3, r3, #512	; 0x200
+ 8000960:	b29a      	uxth	r2, r3
+ 8000962:	687b      	ldr	r3, [r7, #4]
+ 8000964:	801a      	strh	r2, [r3, #0]
+ 8000966:	e007      	b.n	8000978 <I2C_GenerateSTOP+0x34>
   }
   else
   {
     /* Disable the STOP condition generation */
     I2Cx->CR1 &= (uint16_t)~((uint16_t)I2C_CR1_STOP);
- 8000980:	687b      	ldr	r3, [r7, #4]
- 8000982:	881b      	ldrh	r3, [r3, #0]
- 8000984:	b29b      	uxth	r3, r3
- 8000986:	f423 7300 	bic.w	r3, r3, #512	; 0x200
- 800098a:	b29a      	uxth	r2, r3
- 800098c:	687b      	ldr	r3, [r7, #4]
- 800098e:	801a      	strh	r2, [r3, #0]
+ 8000968:	687b      	ldr	r3, [r7, #4]
+ 800096a:	881b      	ldrh	r3, [r3, #0]
+ 800096c:	b29b      	uxth	r3, r3
+ 800096e:	f423 7300 	bic.w	r3, r3, #512	; 0x200
+ 8000972:	b29a      	uxth	r2, r3
+ 8000974:	687b      	ldr	r3, [r7, #4]
+ 8000976:	801a      	strh	r2, [r3, #0]
   }
 }
- 8000990:	370c      	adds	r7, #12
- 8000992:	46bd      	mov	sp, r7
- 8000994:	f85d 7b04 	ldr.w	r7, [sp], #4
- 8000998:	4770      	bx	lr
- 800099a:	bf00      	nop
+ 8000978:	370c      	adds	r7, #12
+ 800097a:	46bd      	mov	sp, r7
+ 800097c:	f85d 7b04 	ldr.w	r7, [sp], #4
+ 8000980:	4770      	bx	lr
+ 8000982:	bf00      	nop
 
-0800099c <I2C_GetFlagStatus>:
+08000984 <I2C_GetFlagStatus>:
   *                                Address matched flag (Slave mode)"ENDAD"
   *            @arg I2C_FLAG_SB: Start bit flag (Master mode)
   * @retval The new state of I2C_FLAG (SET or RESET).
   */
 FlagStatus I2C_GetFlagStatus(I2C_TypeDef* I2Cx, uint32_t I2C_FLAG)
 {
- 800099c:	b480      	push	{r7}
- 800099e:	b087      	sub	sp, #28
- 80009a0:	af00      	add	r7, sp, #0
- 80009a2:	6078      	str	r0, [r7, #4]
- 80009a4:	6039      	str	r1, [r7, #0]
+ 8000984:	b480      	push	{r7}
+ 8000986:	b087      	sub	sp, #28
+ 8000988:	af00      	add	r7, sp, #0
+ 800098a:	6078      	str	r0, [r7, #4]
+ 800098c:	6039      	str	r1, [r7, #0]
   FlagStatus bitstatus = RESET;
- 80009a6:	2300      	movs	r3, #0
- 80009a8:	75fb      	strb	r3, [r7, #23]
+ 800098e:	2300      	movs	r3, #0
+ 8000990:	75fb      	strb	r3, [r7, #23]
   __IO uint32_t i2creg = 0, i2cxbase = 0;
- 80009aa:	2300      	movs	r3, #0
- 80009ac:	613b      	str	r3, [r7, #16]
- 80009ae:	2300      	movs	r3, #0
- 80009b0:	60fb      	str	r3, [r7, #12]
+ 8000992:	2300      	movs	r3, #0
+ 8000994:	613b      	str	r3, [r7, #16]
+ 8000996:	2300      	movs	r3, #0
+ 8000998:	60fb      	str	r3, [r7, #12]
   /* Check the parameters */
   assert_param(IS_I2C_ALL_PERIPH(I2Cx));
   assert_param(IS_I2C_GET_FLAG(I2C_FLAG));
 
   /* Get the I2Cx peripheral base address */
   i2cxbase = (uint32_t)I2Cx;
- 80009b2:	687b      	ldr	r3, [r7, #4]
- 80009b4:	60fb      	str	r3, [r7, #12]
+ 800099a:	687b      	ldr	r3, [r7, #4]
+ 800099c:	60fb      	str	r3, [r7, #12]
   
   /* Read flag register index */
   i2creg = I2C_FLAG >> 28;
- 80009b6:	683b      	ldr	r3, [r7, #0]
- 80009b8:	0f1b      	lsrs	r3, r3, #28
- 80009ba:	613b      	str	r3, [r7, #16]
+ 800099e:	683b      	ldr	r3, [r7, #0]
+ 80009a0:	0f1b      	lsrs	r3, r3, #28
+ 80009a2:	613b      	str	r3, [r7, #16]
   
   /* Get bit[23:0] of the flag */
   I2C_FLAG &= FLAG_MASK;
- 80009bc:	683b      	ldr	r3, [r7, #0]
- 80009be:	f023 437f 	bic.w	r3, r3, #4278190080	; 0xff000000
- 80009c2:	603b      	str	r3, [r7, #0]
+ 80009a4:	683b      	ldr	r3, [r7, #0]
+ 80009a6:	f023 437f 	bic.w	r3, r3, #4278190080	; 0xff000000
+ 80009aa:	603b      	str	r3, [r7, #0]
   
   if(i2creg != 0)
- 80009c4:	693b      	ldr	r3, [r7, #16]
- 80009c6:	2b00      	cmp	r3, #0
- 80009c8:	d003      	beq.n	80009d2 <I2C_GetFlagStatus+0x36>
+ 80009ac:	693b      	ldr	r3, [r7, #16]
+ 80009ae:	2b00      	cmp	r3, #0
+ 80009b0:	d003      	beq.n	80009ba <I2C_GetFlagStatus+0x36>
   {
     /* Get the I2Cx SR1 register address */
     i2cxbase += 0x14;
- 80009ca:	68fb      	ldr	r3, [r7, #12]
- 80009cc:	3314      	adds	r3, #20
- 80009ce:	60fb      	str	r3, [r7, #12]
- 80009d0:	e005      	b.n	80009de <I2C_GetFlagStatus+0x42>
+ 80009b2:	68fb      	ldr	r3, [r7, #12]
+ 80009b4:	3314      	adds	r3, #20
+ 80009b6:	60fb      	str	r3, [r7, #12]
+ 80009b8:	e005      	b.n	80009c6 <I2C_GetFlagStatus+0x42>
   }
   else
   {
     /* Flag in I2Cx SR2 Register */
     I2C_FLAG = (uint32_t)(I2C_FLAG >> 16);
- 80009d2:	683b      	ldr	r3, [r7, #0]
- 80009d4:	0c1b      	lsrs	r3, r3, #16
- 80009d6:	603b      	str	r3, [r7, #0]
+ 80009ba:	683b      	ldr	r3, [r7, #0]
+ 80009bc:	0c1b      	lsrs	r3, r3, #16
+ 80009be:	603b      	str	r3, [r7, #0]
     /* Get the I2Cx SR2 register address */
     i2cxbase += 0x18;
- 80009d8:	68fb      	ldr	r3, [r7, #12]
- 80009da:	3318      	adds	r3, #24
- 80009dc:	60fb      	str	r3, [r7, #12]
+ 80009c0:	68fb      	ldr	r3, [r7, #12]
+ 80009c2:	3318      	adds	r3, #24
+ 80009c4:	60fb      	str	r3, [r7, #12]
   }
   
   if(((*(__IO uint32_t *)i2cxbase) & I2C_FLAG) != (uint32_t)RESET)
- 80009de:	68fb      	ldr	r3, [r7, #12]
- 80009e0:	681a      	ldr	r2, [r3, #0]
- 80009e2:	683b      	ldr	r3, [r7, #0]
- 80009e4:	4013      	ands	r3, r2
- 80009e6:	2b00      	cmp	r3, #0
- 80009e8:	d002      	beq.n	80009f0 <I2C_GetFlagStatus+0x54>
+ 80009c6:	68fb      	ldr	r3, [r7, #12]
+ 80009c8:	681a      	ldr	r2, [r3, #0]
+ 80009ca:	683b      	ldr	r3, [r7, #0]
+ 80009cc:	4013      	ands	r3, r2
+ 80009ce:	2b00      	cmp	r3, #0
+ 80009d0:	d002      	beq.n	80009d8 <I2C_GetFlagStatus+0x54>
   {
     /* I2C_FLAG is set */
     bitstatus = SET;
- 80009ea:	2301      	movs	r3, #1
- 80009ec:	75fb      	strb	r3, [r7, #23]
- 80009ee:	e001      	b.n	80009f4 <I2C_GetFlagStatus+0x58>
+ 80009d2:	2301      	movs	r3, #1
+ 80009d4:	75fb      	strb	r3, [r7, #23]
+ 80009d6:	e001      	b.n	80009dc <I2C_GetFlagStatus+0x58>
   }
   else
   {
     /* I2C_FLAG is reset */
     bitstatus = RESET;
- 80009f0:	2300      	movs	r3, #0
- 80009f2:	75fb      	strb	r3, [r7, #23]
+ 80009d8:	2300      	movs	r3, #0
+ 80009da:	75fb      	strb	r3, [r7, #23]
   }
   
   /* Return the I2C_FLAG status */
   return  bitstatus;
- 80009f4:	7dfb      	ldrb	r3, [r7, #23]
+ 80009dc:	7dfb      	ldrb	r3, [r7, #23]
 }
- 80009f6:	4618      	mov	r0, r3
- 80009f8:	371c      	adds	r7, #28
- 80009fa:	46bd      	mov	sp, r7
- 80009fc:	f85d 7b04 	ldr.w	r7, [sp], #4
- 8000a00:	4770      	bx	lr
- 8000a02:	bf00      	nop
+ 80009de:	4618      	mov	r0, r3
+ 80009e0:	371c      	adds	r7, #28
+ 80009e2:	46bd      	mov	sp, r7
+ 80009e4:	f85d 7b04 	ldr.w	r7, [sp], #4
+ 80009e8:	4770      	bx	lr
+ 80009ea:	bf00      	nop
 
-08000a04 <DMA_Cmd>:
+080009ec <DMA_Cmd>:
   *        this single data is finished.            
   *    
   * @retval None
   */
 void DMA_Cmd(DMA_Stream_TypeDef* DMAy_Streamx, FunctionalState NewState)
 {
- 8000a04:	b480      	push	{r7}
- 8000a06:	b083      	sub	sp, #12
- 8000a08:	af00      	add	r7, sp, #0
- 8000a0a:	6078      	str	r0, [r7, #4]
- 8000a0c:	460b      	mov	r3, r1
- 8000a0e:	70fb      	strb	r3, [r7, #3]
+ 80009ec:	b480      	push	{r7}
+ 80009ee:	b083      	sub	sp, #12
+ 80009f0:	af00      	add	r7, sp, #0
+ 80009f2:	6078      	str	r0, [r7, #4]
+ 80009f4:	460b      	mov	r3, r1
+ 80009f6:	70fb      	strb	r3, [r7, #3]
   /* Check the parameters */
   assert_param(IS_DMA_ALL_PERIPH(DMAy_Streamx));
   assert_param(IS_FUNCTIONAL_STATE(NewState));
 
   if (NewState != DISABLE)
- 8000a10:	78fb      	ldrb	r3, [r7, #3]
- 8000a12:	2b00      	cmp	r3, #0
- 8000a14:	d006      	beq.n	8000a24 <DMA_Cmd+0x20>
+ 80009f8:	78fb      	ldrb	r3, [r7, #3]
+ 80009fa:	2b00      	cmp	r3, #0
+ 80009fc:	d006      	beq.n	8000a0c <DMA_Cmd+0x20>
   {
     /* Enable the selected DMAy Streamx by setting EN bit */
     DMAy_Streamx->CR |= (uint32_t)DMA_SxCR_EN;
- 8000a16:	687b      	ldr	r3, [r7, #4]
- 8000a18:	681b      	ldr	r3, [r3, #0]
- 8000a1a:	f043 0201 	orr.w	r2, r3, #1
- 8000a1e:	687b      	ldr	r3, [r7, #4]
- 8000a20:	601a      	str	r2, [r3, #0]
- 8000a22:	e005      	b.n	8000a30 <DMA_Cmd+0x2c>
+ 80009fe:	687b      	ldr	r3, [r7, #4]
+ 8000a00:	681b      	ldr	r3, [r3, #0]
+ 8000a02:	f043 0201 	orr.w	r2, r3, #1
+ 8000a06:	687b      	ldr	r3, [r7, #4]
+ 8000a08:	601a      	str	r2, [r3, #0]
+ 8000a0a:	e005      	b.n	8000a18 <DMA_Cmd+0x2c>
   }
   else
   {
     /* Disable the selected DMAy Streamx by clearing EN bit */
     DMAy_Streamx->CR &= ~(uint32_t)DMA_SxCR_EN;
- 8000a24:	687b      	ldr	r3, [r7, #4]
- 8000a26:	681b      	ldr	r3, [r3, #0]
- 8000a28:	f023 0201 	bic.w	r2, r3, #1
- 8000a2c:	687b      	ldr	r3, [r7, #4]
- 8000a2e:	601a      	str	r2, [r3, #0]
+ 8000a0c:	687b      	ldr	r3, [r7, #4]
+ 8000a0e:	681b      	ldr	r3, [r3, #0]
+ 8000a10:	f023 0201 	bic.w	r2, r3, #1
+ 8000a14:	687b      	ldr	r3, [r7, #4]
+ 8000a16:	601a      	str	r2, [r3, #0]
   }
 }
- 8000a30:	370c      	adds	r7, #12
- 8000a32:	46bd      	mov	sp, r7
- 8000a34:	f85d 7b04 	ldr.w	r7, [sp], #4
- 8000a38:	4770      	bx	lr
- 8000a3a:	bf00      	nop
+ 8000a18:	370c      	adds	r7, #12
+ 8000a1a:	46bd      	mov	sp, r7
+ 8000a1c:	f85d 7b04 	ldr.w	r7, [sp], #4
+ 8000a20:	4770      	bx	lr
+ 8000a22:	bf00      	nop
 
-08000a3c <DMA_GetFlagStatus>:
+08000a24 <DMA_GetFlagStatus>:
   *            @arg DMA_FLAG_FEIFx:  Streamx FIFO error flag
   *         Where x can be 0 to 7 to select the DMA Stream.
   * @retval The new state of DMA_FLAG (SET or RESET).
   */
 FlagStatus DMA_GetFlagStatus(DMA_Stream_TypeDef* DMAy_Streamx, uint32_t DMA_FLAG)
 {
- 8000a3c:	b480      	push	{r7}
- 8000a3e:	b087      	sub	sp, #28
- 8000a40:	af00      	add	r7, sp, #0
- 8000a42:	6078      	str	r0, [r7, #4]
- 8000a44:	6039      	str	r1, [r7, #0]
+ 8000a24:	b480      	push	{r7}
+ 8000a26:	b087      	sub	sp, #28
+ 8000a28:	af00      	add	r7, sp, #0
+ 8000a2a:	6078      	str	r0, [r7, #4]
+ 8000a2c:	6039      	str	r1, [r7, #0]
   FlagStatus bitstatus = RESET;
- 8000a46:	2300      	movs	r3, #0
- 8000a48:	75fb      	strb	r3, [r7, #23]
+ 8000a2e:	2300      	movs	r3, #0
+ 8000a30:	75fb      	strb	r3, [r7, #23]
   DMA_TypeDef* DMAy;
   uint32_t tmpreg = 0;
- 8000a4a:	2300      	movs	r3, #0
- 8000a4c:	60fb      	str	r3, [r7, #12]
+ 8000a32:	2300      	movs	r3, #0
+ 8000a34:	60fb      	str	r3, [r7, #12]
   /* Check the parameters */
   assert_param(IS_DMA_ALL_PERIPH(DMAy_Streamx));
   assert_param(IS_DMA_GET_FLAG(DMA_FLAG));
 
   /* Determine the DMA to which belongs the stream */
   if (DMAy_Streamx < DMA2_Stream0)
- 8000a4e:	687a      	ldr	r2, [r7, #4]
- 8000a50:	4b15      	ldr	r3, [pc, #84]	; (8000aa8 <DMA_GetFlagStatus+0x6c>)
- 8000a52:	429a      	cmp	r2, r3
- 8000a54:	d802      	bhi.n	8000a5c <DMA_GetFlagStatus+0x20>
+ 8000a36:	687a      	ldr	r2, [r7, #4]
+ 8000a38:	4b15      	ldr	r3, [pc, #84]	; (8000a90 <DMA_GetFlagStatus+0x6c>)
+ 8000a3a:	429a      	cmp	r2, r3
+ 8000a3c:	d802      	bhi.n	8000a44 <DMA_GetFlagStatus+0x20>
   {
     /* DMAy_Streamx belongs to DMA1 */
     DMAy = DMA1; 
- 8000a56:	4b15      	ldr	r3, [pc, #84]	; (8000aac <DMA_GetFlagStatus+0x70>)
- 8000a58:	613b      	str	r3, [r7, #16]
- 8000a5a:	e001      	b.n	8000a60 <DMA_GetFlagStatus+0x24>
+ 8000a3e:	4b15      	ldr	r3, [pc, #84]	; (8000a94 <DMA_GetFlagStatus+0x70>)
+ 8000a40:	613b      	str	r3, [r7, #16]
+ 8000a42:	e001      	b.n	8000a48 <DMA_GetFlagStatus+0x24>
   } 
   else 
   {
     /* DMAy_Streamx belongs to DMA2 */
     DMAy = DMA2; 
- 8000a5c:	4b14      	ldr	r3, [pc, #80]	; (8000ab0 <DMA_GetFlagStatus+0x74>)
- 8000a5e:	613b      	str	r3, [r7, #16]
+ 8000a44:	4b14      	ldr	r3, [pc, #80]	; (8000a98 <DMA_GetFlagStatus+0x74>)
+ 8000a46:	613b      	str	r3, [r7, #16]
   }
 
   /* Check if the flag is in HISR or LISR */
   if ((DMA_FLAG & HIGH_ISR_MASK) != (uint32_t)RESET)
- 8000a60:	683b      	ldr	r3, [r7, #0]
- 8000a62:	f003 5300 	and.w	r3, r3, #536870912	; 0x20000000
- 8000a66:	2b00      	cmp	r3, #0
- 8000a68:	d003      	beq.n	8000a72 <DMA_GetFlagStatus+0x36>
+ 8000a48:	683b      	ldr	r3, [r7, #0]
+ 8000a4a:	f003 5300 	and.w	r3, r3, #536870912	; 0x20000000
+ 8000a4e:	2b00      	cmp	r3, #0
+ 8000a50:	d003      	beq.n	8000a5a <DMA_GetFlagStatus+0x36>
   {
     /* Get DMAy HISR register value */
     tmpreg = DMAy->HISR;
- 8000a6a:	693b      	ldr	r3, [r7, #16]
- 8000a6c:	685b      	ldr	r3, [r3, #4]
- 8000a6e:	60fb      	str	r3, [r7, #12]
- 8000a70:	e002      	b.n	8000a78 <DMA_GetFlagStatus+0x3c>
+ 8000a52:	693b      	ldr	r3, [r7, #16]
+ 8000a54:	685b      	ldr	r3, [r3, #4]
+ 8000a56:	60fb      	str	r3, [r7, #12]
+ 8000a58:	e002      	b.n	8000a60 <DMA_GetFlagStatus+0x3c>
   }
   else
   {
     /* Get DMAy LISR register value */
     tmpreg = DMAy->LISR;
- 8000a72:	693b      	ldr	r3, [r7, #16]
- 8000a74:	681b      	ldr	r3, [r3, #0]
- 8000a76:	60fb      	str	r3, [r7, #12]
+ 8000a5a:	693b      	ldr	r3, [r7, #16]
+ 8000a5c:	681b      	ldr	r3, [r3, #0]
+ 8000a5e:	60fb      	str	r3, [r7, #12]
   }   
  
   /* Mask the reserved bits */
   tmpreg &= (uint32_t)RESERVED_MASK;
- 8000a78:	68fb      	ldr	r3, [r7, #12]
- 8000a7a:	f023 23f0 	bic.w	r3, r3, #4026593280	; 0xf000f000
- 8000a7e:	f023 1382 	bic.w	r3, r3, #8519810	; 0x820082
- 8000a82:	60fb      	str	r3, [r7, #12]
+ 8000a60:	68fb      	ldr	r3, [r7, #12]
+ 8000a62:	f023 23f0 	bic.w	r3, r3, #4026593280	; 0xf000f000
+ 8000a66:	f023 1382 	bic.w	r3, r3, #8519810	; 0x820082
+ 8000a6a:	60fb      	str	r3, [r7, #12]
 
   /* Check the status of the specified DMA flag */
   if ((tmpreg & DMA_FLAG) != (uint32_t)RESET)
- 8000a84:	68fa      	ldr	r2, [r7, #12]
- 8000a86:	683b      	ldr	r3, [r7, #0]
- 8000a88:	4013      	ands	r3, r2
- 8000a8a:	2b00      	cmp	r3, #0
- 8000a8c:	d002      	beq.n	8000a94 <DMA_GetFlagStatus+0x58>
+ 8000a6c:	68fa      	ldr	r2, [r7, #12]
+ 8000a6e:	683b      	ldr	r3, [r7, #0]
+ 8000a70:	4013      	ands	r3, r2
+ 8000a72:	2b00      	cmp	r3, #0
+ 8000a74:	d002      	beq.n	8000a7c <DMA_GetFlagStatus+0x58>
   {
     /* DMA_FLAG is set */
     bitstatus = SET;
- 8000a8e:	2301      	movs	r3, #1
- 8000a90:	75fb      	strb	r3, [r7, #23]
- 8000a92:	e001      	b.n	8000a98 <DMA_GetFlagStatus+0x5c>
+ 8000a76:	2301      	movs	r3, #1
+ 8000a78:	75fb      	strb	r3, [r7, #23]
+ 8000a7a:	e001      	b.n	8000a80 <DMA_GetFlagStatus+0x5c>
   }
   else
   {
     /* DMA_FLAG is reset */
     bitstatus = RESET;
- 8000a94:	2300      	movs	r3, #0
- 8000a96:	75fb      	strb	r3, [r7, #23]
+ 8000a7c:	2300      	movs	r3, #0
+ 8000a7e:	75fb      	strb	r3, [r7, #23]
   }
 
   /* Return the DMA_FLAG status */
   return  bitstatus;
- 8000a98:	7dfb      	ldrb	r3, [r7, #23]
+ 8000a80:	7dfb      	ldrb	r3, [r7, #23]
 }
- 8000a9a:	4618      	mov	r0, r3
- 8000a9c:	371c      	adds	r7, #28
- 8000a9e:	46bd      	mov	sp, r7
- 8000aa0:	f85d 7b04 	ldr.w	r7, [sp], #4
- 8000aa4:	4770      	bx	lr
- 8000aa6:	bf00      	nop
- 8000aa8:	4002640f 	.word	0x4002640f
- 8000aac:	40026000 	.word	0x40026000
- 8000ab0:	40026400 	.word	0x40026400
+ 8000a82:	4618      	mov	r0, r3
+ 8000a84:	371c      	adds	r7, #28
+ 8000a86:	46bd      	mov	sp, r7
+ 8000a88:	f85d 7b04 	ldr.w	r7, [sp], #4
+ 8000a8c:	4770      	bx	lr
+ 8000a8e:	bf00      	nop
+ 8000a90:	4002640f 	.word	0x4002640f
+ 8000a94:	40026000 	.word	0x40026000
+ 8000a98:	40026400 	.word	0x40026400
 
-08000ab4 <DMA_ClearFlag>:
+08000a9c <DMA_ClearFlag>:
   *            @arg DMA_FLAG_FEIFx:  Streamx FIFO error flag
   *         Where x can be 0 to 7 to select the DMA Stream.   
   * @retval None
   */
 void DMA_ClearFlag(DMA_Stream_TypeDef* DMAy_Streamx, uint32_t DMA_FLAG)
 {
- 8000ab4:	b480      	push	{r7}
- 8000ab6:	b085      	sub	sp, #20
- 8000ab8:	af00      	add	r7, sp, #0
- 8000aba:	6078      	str	r0, [r7, #4]
- 8000abc:	6039      	str	r1, [r7, #0]
+ 8000a9c:	b480      	push	{r7}
+ 8000a9e:	b085      	sub	sp, #20
+ 8000aa0:	af00      	add	r7, sp, #0
+ 8000aa2:	6078      	str	r0, [r7, #4]
+ 8000aa4:	6039      	str	r1, [r7, #0]
   /* Check the parameters */
   assert_param(IS_DMA_ALL_PERIPH(DMAy_Streamx));
   assert_param(IS_DMA_CLEAR_FLAG(DMA_FLAG));
 
   /* Determine the DMA to which belongs the stream */
   if (DMAy_Streamx < DMA2_Stream0)
- 8000abe:	687a      	ldr	r2, [r7, #4]
- 8000ac0:	4b10      	ldr	r3, [pc, #64]	; (8000b04 <DMA_ClearFlag+0x50>)
- 8000ac2:	429a      	cmp	r2, r3
- 8000ac4:	d802      	bhi.n	8000acc <DMA_ClearFlag+0x18>
+ 8000aa6:	687a      	ldr	r2, [r7, #4]
+ 8000aa8:	4b10      	ldr	r3, [pc, #64]	; (8000aec <DMA_ClearFlag+0x50>)
+ 8000aaa:	429a      	cmp	r2, r3
+ 8000aac:	d802      	bhi.n	8000ab4 <DMA_ClearFlag+0x18>
   {
     /* DMAy_Streamx belongs to DMA1 */
     DMAy = DMA1; 
- 8000ac6:	4b10      	ldr	r3, [pc, #64]	; (8000b08 <DMA_ClearFlag+0x54>)
- 8000ac8:	60fb      	str	r3, [r7, #12]
- 8000aca:	e001      	b.n	8000ad0 <DMA_ClearFlag+0x1c>
+ 8000aae:	4b10      	ldr	r3, [pc, #64]	; (8000af0 <DMA_ClearFlag+0x54>)
+ 8000ab0:	60fb      	str	r3, [r7, #12]
+ 8000ab2:	e001      	b.n	8000ab8 <DMA_ClearFlag+0x1c>
   } 
   else 
   {
     /* DMAy_Streamx belongs to DMA2 */
     DMAy = DMA2; 
- 8000acc:	4b0f      	ldr	r3, [pc, #60]	; (8000b0c <DMA_ClearFlag+0x58>)
- 8000ace:	60fb      	str	r3, [r7, #12]
+ 8000ab4:	4b0f      	ldr	r3, [pc, #60]	; (8000af4 <DMA_ClearFlag+0x58>)
+ 8000ab6:	60fb      	str	r3, [r7, #12]
   }
 
   /* Check if LIFCR or HIFCR register is targeted */
   if ((DMA_FLAG & HIGH_ISR_MASK) != (uint32_t)RESET)
- 8000ad0:	683b      	ldr	r3, [r7, #0]
- 8000ad2:	f003 5300 	and.w	r3, r3, #536870912	; 0x20000000
- 8000ad6:	2b00      	cmp	r3, #0
- 8000ad8:	d007      	beq.n	8000aea <DMA_ClearFlag+0x36>
+ 8000ab8:	683b      	ldr	r3, [r7, #0]
+ 8000aba:	f003 5300 	and.w	r3, r3, #536870912	; 0x20000000
+ 8000abe:	2b00      	cmp	r3, #0
+ 8000ac0:	d007      	beq.n	8000ad2 <DMA_ClearFlag+0x36>
   {
     /* Set DMAy HIFCR register clear flag bits */
     DMAy->HIFCR = (uint32_t)(DMA_FLAG & RESERVED_MASK);
- 8000ada:	683b      	ldr	r3, [r7, #0]
- 8000adc:	f023 23f0 	bic.w	r3, r3, #4026593280	; 0xf000f000
- 8000ae0:	f023 1382 	bic.w	r3, r3, #8519810	; 0x820082
- 8000ae4:	68fa      	ldr	r2, [r7, #12]
- 8000ae6:	60d3      	str	r3, [r2, #12]
- 8000ae8:	e006      	b.n	8000af8 <DMA_ClearFlag+0x44>
+ 8000ac2:	683b      	ldr	r3, [r7, #0]
+ 8000ac4:	f023 23f0 	bic.w	r3, r3, #4026593280	; 0xf000f000
+ 8000ac8:	f023 1382 	bic.w	r3, r3, #8519810	; 0x820082
+ 8000acc:	68fa      	ldr	r2, [r7, #12]
+ 8000ace:	60d3      	str	r3, [r2, #12]
+ 8000ad0:	e006      	b.n	8000ae0 <DMA_ClearFlag+0x44>
   }
   else 
   {
     /* Set DMAy LIFCR register clear flag bits */
     DMAy->LIFCR = (uint32_t)(DMA_FLAG & RESERVED_MASK);
- 8000aea:	683b      	ldr	r3, [r7, #0]
- 8000aec:	f023 23f0 	bic.w	r3, r3, #4026593280	; 0xf000f000
- 8000af0:	f023 1382 	bic.w	r3, r3, #8519810	; 0x820082
- 8000af4:	68fa      	ldr	r2, [r7, #12]
- 8000af6:	6093      	str	r3, [r2, #8]
+ 8000ad2:	683b      	ldr	r3, [r7, #0]
+ 8000ad4:	f023 23f0 	bic.w	r3, r3, #4026593280	; 0xf000f000
+ 8000ad8:	f023 1382 	bic.w	r3, r3, #8519810	; 0x820082
+ 8000adc:	68fa      	ldr	r2, [r7, #12]
+ 8000ade:	6093      	str	r3, [r2, #8]
   }    
 }
- 8000af8:	3714      	adds	r7, #20
- 8000afa:	46bd      	mov	sp, r7
- 8000afc:	f85d 7b04 	ldr.w	r7, [sp], #4
- 8000b00:	4770      	bx	lr
- 8000b02:	bf00      	nop
- 8000b04:	4002640f 	.word	0x4002640f
- 8000b08:	40026000 	.word	0x40026000
- 8000b0c:	40026400 	.word	0x40026400
+ 8000ae0:	3714      	adds	r7, #20
+ 8000ae2:	46bd      	mov	sp, r7
+ 8000ae4:	f85d 7b04 	ldr.w	r7, [sp], #4
+ 8000ae8:	4770      	bx	lr
+ 8000aea:	bf00      	nop
+ 8000aec:	4002640f 	.word	0x4002640f
+ 8000af0:	40026000 	.word	0x40026000
+ 8000af4:	40026400 	.word	0x40026400
 
-08000b10 <__libc_init_array>:
- 8000b10:	b570      	push	{r4, r5, r6, lr}
- 8000b12:	4b0e      	ldr	r3, [pc, #56]	; (8000b4c <__libc_init_array+0x3c>)
- 8000b14:	4d0e      	ldr	r5, [pc, #56]	; (8000b50 <__libc_init_array+0x40>)
- 8000b16:	1aed      	subs	r5, r5, r3
- 8000b18:	10ad      	asrs	r5, r5, #2
- 8000b1a:	2400      	movs	r4, #0
- 8000b1c:	461e      	mov	r6, r3
- 8000b1e:	42ac      	cmp	r4, r5
- 8000b20:	d004      	beq.n	8000b2c <__libc_init_array+0x1c>
- 8000b22:	f856 2024 	ldr.w	r2, [r6, r4, lsl #2]
- 8000b26:	4790      	blx	r2
- 8000b28:	3401      	adds	r4, #1
- 8000b2a:	e7f8      	b.n	8000b1e <__libc_init_array+0xe>
- 8000b2c:	f000 f816 	bl	8000b5c <_init>
- 8000b30:	4d08      	ldr	r5, [pc, #32]	; (8000b54 <__libc_init_array+0x44>)
- 8000b32:	4b09      	ldr	r3, [pc, #36]	; (8000b58 <__libc_init_array+0x48>)
- 8000b34:	1aed      	subs	r5, r5, r3
- 8000b36:	10ad      	asrs	r5, r5, #2
- 8000b38:	2400      	movs	r4, #0
- 8000b3a:	461e      	mov	r6, r3
- 8000b3c:	42ac      	cmp	r4, r5
- 8000b3e:	d004      	beq.n	8000b4a <__libc_init_array+0x3a>
- 8000b40:	f856 2024 	ldr.w	r2, [r6, r4, lsl #2]
- 8000b44:	4790      	blx	r2
- 8000b46:	3401      	adds	r4, #1
- 8000b48:	e7f8      	b.n	8000b3c <__libc_init_array+0x2c>
- 8000b4a:	bd70      	pop	{r4, r5, r6, pc}
- 8000b4c:	08000b74 	.word	0x08000b74
- 8000b50:	08000b74 	.word	0x08000b74
- 8000b54:	08000b78 	.word	0x08000b78
- 8000b58:	08000b74 	.word	0x08000b74
+08000af8 <__libc_init_array>:
+ 8000af8:	b570      	push	{r4, r5, r6, lr}
+ 8000afa:	4b0e      	ldr	r3, [pc, #56]	; (8000b34 <__libc_init_array+0x3c>)
+ 8000afc:	4d0e      	ldr	r5, [pc, #56]	; (8000b38 <__libc_init_array+0x40>)
+ 8000afe:	1aed      	subs	r5, r5, r3
+ 8000b00:	10ad      	asrs	r5, r5, #2
+ 8000b02:	2400      	movs	r4, #0
+ 8000b04:	461e      	mov	r6, r3
+ 8000b06:	42ac      	cmp	r4, r5
+ 8000b08:	d004      	beq.n	8000b14 <__libc_init_array+0x1c>
+ 8000b0a:	f856 2024 	ldr.w	r2, [r6, r4, lsl #2]
+ 8000b0e:	4790      	blx	r2
+ 8000b10:	3401      	adds	r4, #1
+ 8000b12:	e7f8      	b.n	8000b06 <__libc_init_array+0xe>
+ 8000b14:	f000 f816 	bl	8000b44 <_init>
+ 8000b18:	4d08      	ldr	r5, [pc, #32]	; (8000b3c <__libc_init_array+0x44>)
+ 8000b1a:	4b09      	ldr	r3, [pc, #36]	; (8000b40 <__libc_init_array+0x48>)
+ 8000b1c:	1aed      	subs	r5, r5, r3
+ 8000b1e:	10ad      	asrs	r5, r5, #2
+ 8000b20:	2400      	movs	r4, #0
+ 8000b22:	461e      	mov	r6, r3
+ 8000b24:	42ac      	cmp	r4, r5
+ 8000b26:	d004      	beq.n	8000b32 <__libc_init_array+0x3a>
+ 8000b28:	f856 2024 	ldr.w	r2, [r6, r4, lsl #2]
+ 8000b2c:	4790      	blx	r2
+ 8000b2e:	3401      	adds	r4, #1
+ 8000b30:	e7f8      	b.n	8000b24 <__libc_init_array+0x2c>
+ 8000b32:	bd70      	pop	{r4, r5, r6, pc}
+ 8000b34:	08000b5c 	.word	0x08000b5c
+ 8000b38:	08000b5c 	.word	0x08000b5c
+ 8000b3c:	08000b60 	.word	0x08000b60
+ 8000b40:	08000b5c 	.word	0x08000b5c
 
-08000b5c <_init>:
- 8000b5c:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
- 8000b5e:	bf00      	nop
- 8000b60:	bcf8      	pop	{r3, r4, r5, r6, r7}
- 8000b62:	bc08      	pop	{r3}
- 8000b64:	469e      	mov	lr, r3
- 8000b66:	4770      	bx	lr
+08000b44 <_init>:
+ 8000b44:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+ 8000b46:	bf00      	nop
+ 8000b48:	bcf8      	pop	{r3, r4, r5, r6, r7}
+ 8000b4a:	bc08      	pop	{r3}
+ 8000b4c:	469e      	mov	lr, r3
+ 8000b4e:	4770      	bx	lr
 
-08000b68 <_fini>:
- 8000b68:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
- 8000b6a:	bf00      	nop
- 8000b6c:	bcf8      	pop	{r3, r4, r5, r6, r7}
- 8000b6e:	bc08      	pop	{r3}
- 8000b70:	469e      	mov	lr, r3
- 8000b72:	4770      	bx	lr
+08000b50 <_fini>:
+ 8000b50:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+ 8000b52:	bf00      	nop
+ 8000b54:	bcf8      	pop	{r3, r4, r5, r6, r7}
+ 8000b56:	bc08      	pop	{r3}
+ 8000b58:	469e      	mov	lr, r3
+ 8000b5a:	4770      	bx	lr
