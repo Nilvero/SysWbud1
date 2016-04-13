@@ -26,18 +26,23 @@
 #include "stm32f4xx.h"
 #include "stm32f429i_discovery.h"
 #include "DHT11.h"
-
+#include "ds18b20.h"
+#include "SharedFunctions.h"
 int main(void)
 {
   int i = 0;
   /* Infinite loop */
   while (1)
   {
-	  DHT11Result dht11Result=DHT11_read();
-	  if(dht11Result.ERROR_CODE==DHT11_TIME_OUT){
-		  i=0;
+	  ds18b20_beginConversion();
+	  InitTimerTIM2ToCountInUc();
+	  // start timer
+	  TIM2->CR1 |= 0x01;
+	  TIM2->CNT=0;
+	  while(TIM2->CNT<1000000){
+		  __NOP();
 	  }
-	  i++;
+	  ds18b20_read();
   }
 }
 

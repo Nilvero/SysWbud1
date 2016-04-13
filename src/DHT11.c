@@ -6,26 +6,7 @@
  */
 
 #include "DHT11.h"
-
-void DHT11InitTimer(){
-	// enable timer 2 clock
-	if((RCC->APB1ENR & RCC_APB1Periph_TIM2)==0){
-		RCC->APB1ENR |= RCC_APB1Periph_TIM2;
-	}
-
-	// clear configuration to reset value timer is simple up-counter
-	// using sclk by default
-	TIM2->CR1 =0x0000;
-
-	// set prescaler to make counter counting in uS
-	TIM2->PSC=(uint16_t)(SystemCoreClock/2000000);
-
-	// auto-reload if full overflow
-	TIM2->ARR=0xffffffff;
-
-	// load new values
-	TIM2->EGR|=0x01;
-}
+#include "SharedFunctions.h"
 
 void DHT11SentStartRequest(){
 	// high logic level by default (pull-up line)
@@ -185,7 +166,7 @@ DHT11Result DHT11_read(){
 
 
 	// HOW TO DISABLE INTERRUPTS ?
-	DHT11InitTimer();
+	InitTimerTIM2ToCountInUc();
 	DHT11SentStartRequest();
 	result.ERROR_CODE=DHT11RecvData(intervals);
 
