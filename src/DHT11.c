@@ -55,9 +55,6 @@ uint32_t DHT11RecvData(uint32_t * intervalsArray){
 
 	uint16_t state=GPIOG->IDR & (1<<5);
 
-	// start timer
-	TIM2->CR1 |= 0x01;
-
 	// listen for new data
 	int dataNumber;
 	for(dataNumber=0;dataNumber<42;dataNumber++){
@@ -115,6 +112,7 @@ uint32_t DHT11DecodeByte(uint32_t * intervals,uint8_t * result){
 	}
 	return DHT11_OK;
 }
+
 void DHT11Decode(uint32_t * intervals,DHT11Result * result){
 	uint8_t index;
 
@@ -170,6 +168,9 @@ DHT11Result DHT11_read(){
 	DHT11SentStartRequest();
 	result.ERROR_CODE=DHT11RecvData(intervals);
 
+	if(result.ERROR_CODE!=DHT11_OK){
+		return result;
+	}
 	// disable timer2
 	TIM2->CR1 &= ~0x00000001;
 
