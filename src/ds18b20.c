@@ -10,34 +10,34 @@
 
 void ds18b20PinConfig(){
 	// high logic level by default (pull-up line)
-	GPIOG->ODR |= (1<<5);
+	GPIOG->ODR |= (1<<4);
 
 	// set as output
-	GPIOG->MODER |= (uint32_t)(1<<10);
-	GPIOG->MODER &= ~((uint32_t)(1<<11));
+	GPIOG->MODER |= (uint32_t)(1<<8);
+	GPIOG->MODER &= ~((uint32_t)(1<<9));
 
 	// high speed output enable
-	GPIOG->OSPEEDR|=(uint32_t)(1<<11);
-	GPIOG->OSPEEDR&= ~((uint32_t)(1<<10));
+	GPIOG->OSPEEDR|=(uint32_t)(1<<9);
+	GPIOG->OSPEEDR&= ~((uint32_t)(1<<8));
 
 	// open-drain
-	GPIOG->OTYPER |= ((uint32_t)(1<<5));
+	GPIOG->OTYPER |= ((uint32_t)(1<<4));
 
 	// no pull-up (external pull-up)
-	GPIOG->PUPDR &= ~((uint32_t)(1<<10));
-	GPIOG->PUPDR &= ~((uint32_t)(1<<11));
+	GPIOG->PUPDR &= ~((uint32_t)(1<<8));
+	GPIOG->PUPDR &= ~((uint32_t)(1<<9));
 }
 
 void ds18b20Reset(){
 	// pull data line down && wait 480us
-	GPIOG->ODR&=~((uint32_t)(1<<5));
+	GPIOG->ODR&=~((uint32_t)(1<<4));
 	TIM2->CNT = 0x00;
 	while(TIM2->CNT<480){
 		__NOP();
 	}
 
 	// let line to pull up
-	GPIOG->ODR|=((uint32_t)(1<<5));
+	GPIOG->ODR|=((uint32_t)(1<<4));
 }
 /*
  * 1-OK 0-NoRespoce
@@ -46,7 +46,7 @@ uint8_t ds18b20WaitForPresenceResponce(){
 	uint8_t detected=0;
 	TIM2->CNT = 0x00;
 	while(TIM2->CNT<480){
-		if(!(GPIOG->IDR&(1<<5))){
+		if(!(GPIOG->IDR&(1<<4))){
 			detected=1;
 		}
 		__NOP();
@@ -56,7 +56,7 @@ uint8_t ds18b20WaitForPresenceResponce(){
 
 void ds18b20WriteBit(uint8_t state){
 	// pull line down for 1 us
-	GPIOG->ODR&=~((uint32_t)(1<<5));
+	GPIOG->ODR&=~((uint32_t)(1<<4));
 	TIM2->CNT = 0x00;
 	while(TIM2->CNT<1){
 		__NOP();
@@ -64,7 +64,7 @@ void ds18b20WriteBit(uint8_t state){
 
 	// if one let line to pull up
 	if(state){
-		GPIOG->ODR|=((uint32_t)(1<<5));
+		GPIOG->ODR|=((uint32_t)(1<<4));
 	}
 
 	// wait 60 us to let sensor catch state
@@ -74,21 +74,21 @@ void ds18b20WriteBit(uint8_t state){
 	}
 
 	// release line
-	GPIOG->ODR|=((uint32_t)(1<<5));
+	GPIOG->ODR|=((uint32_t)(1<<4));
 }
 
 uint8_t ds18b20ReadBit(void){
 	uint8_t bit=0;
 
 	// pull line down for 1 us
-	GPIOG->ODR&=~((uint32_t)(1<<5));
+	GPIOG->ODR&=~((uint32_t)(1<<4));
 	TIM2->CNT = 0x00;
 	while(TIM2->CNT<1){
 		__NOP();
 	}
 
 	//release line
-	GPIOG->ODR|=((uint32_t)(1<<5));
+	GPIOG->ODR|=((uint32_t)(1<<4));
 
 	// wait 14 uS to enter sample area
 	TIM2->CNT = 0x00;
@@ -97,7 +97,7 @@ uint8_t ds18b20ReadBit(void){
 	}
 
 	// make sample
-	if(GPIOG->IDR &(1<<5)){
+	if(GPIOG->IDR &(1<<4)){
 		bit=1;
 	}
 	else{
