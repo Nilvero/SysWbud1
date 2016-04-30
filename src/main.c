@@ -27,18 +27,19 @@
 #include "stm32f429i_discovery.h"
 #include "DHT11.h"
 #include "ds18b20.h"
+#include "LPS331.h"
 #include "SharedFunctions.h"
 int main(void)
 {
 
-	DHT11Result r;
+	LPS331_INIT();
+	struct LPS331Result res;
   int i = 0;
   /* Infinite loop */
   while (1)
   {
-	  r=DHT11_read();
+	  res=LPS331_readPressure();
 
-	  r.temperature=0;
   }
 }
 
