@@ -28,18 +28,23 @@ void InitTimerTIM2ToCountInUc(){
 }
 
 void InitI2C2(){
+	// enable i2c2 clock
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C2, ENABLE);
 
+	// enable GPIOF clock
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOF,ENABLE);
 
 	GPIO_PinAFConfig(GPIOF,GPIO_PinSource1,GPIO_AF_I2C2);
 	GPIO_PinAFConfig(GPIOF,GPIO_PinSource0,GPIO_AF_I2C2);
 
+	// enable syscfg clock
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 
+	// reset i2c2 circuit
 	RCC_APB1PeriphResetCmd(RCC_APB1Periph_I2C2,ENABLE);
 	RCC_APB1PeriphResetCmd(RCC_APB1Periph_I2C2,DISABLE);
 
+	// initiate I2C pins as open-drain with no-pull resistors
 	GPIO_InitTypeDef pinInitStruct;
 	pinInitStruct.GPIO_Mode=GPIO_Mode_AF;
 	pinInitStruct.GPIO_Pin=GPIO_Pin_1;
@@ -52,7 +57,7 @@ void InitI2C2(){
 	pinInitStruct.GPIO_Pin=GPIO_Pin_0;
 	GPIO_Init(GPIOF,&pinInitStruct);
 
-
+	// configure I2C as half-duty cycle with seven bit adressing using 10kHz frequency
 	I2C_InitTypeDef i2cInitStruct;
 	I2C_StructInit(&i2cInitStruct);
 	i2cInitStruct.I2C_Mode=I2C_Mode_I2C;
