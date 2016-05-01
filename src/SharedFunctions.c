@@ -26,3 +26,44 @@ void InitTimerTIM2ToCountInUc(){
 	// load new values
 	TIM2->EGR|=0x01;
 }
+
+void InitI2C2(){
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C2, ENABLE);
+
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOF,ENABLE);
+
+	GPIO_PinAFConfig(GPIOF,GPIO_PinSource1,GPIO_AF_I2C2);
+	GPIO_PinAFConfig(GPIOF,GPIO_PinSource0,GPIO_AF_I2C2);
+
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_I2C2,ENABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_I2C2,DISABLE);
+
+	GPIO_InitTypeDef pinInitStruct;
+	pinInitStruct.GPIO_Mode=GPIO_Mode_AF;
+	pinInitStruct.GPIO_Pin=GPIO_Pin_1;
+	pinInitStruct.GPIO_PuPd=GPIO_PuPd_NOPULL;
+	pinInitStruct.GPIO_OType=GPIO_OType_OD;
+	pinInitStruct.GPIO_Speed=GPIO_Speed_50MHz;
+
+	GPIO_Init(GPIOF,&pinInitStruct);
+
+	pinInitStruct.GPIO_Pin=GPIO_Pin_0;
+	GPIO_Init(GPIOF,&pinInitStruct);
+
+
+	I2C_InitTypeDef i2cInitStruct;
+	I2C_StructInit(&i2cInitStruct);
+	i2cInitStruct.I2C_Mode=I2C_Mode_I2C;
+	i2cInitStruct.I2C_OwnAddress1=0xA0;
+	i2cInitStruct.I2C_ClockSpeed=10000;
+	i2cInitStruct.I2C_DutyCycle=I2C_DutyCycle_2;
+	i2cInitStruct.I2C_Ack=I2C_Ack_Enable;
+	i2cInitStruct.I2C_AcknowledgedAddress=I2C_AcknowledgedAddress_7bit;
+
+	I2C_Init(I2C2,&i2cInitStruct);
+	I2C_Cmd(I2C2,ENABLE);
+
+	I2C2_CONFIGURED=1;
+}
