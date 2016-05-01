@@ -14,25 +14,30 @@ void LPS331_INIT(){
 		InitI2C2();
 	}
 
-	// send command to enable LPS331 in full precision mode
-
 	while(I2C_GetFlagStatus(I2C2, I2C_FLAG_BUSY)){}
 
+	// generate start conditions
 	I2C_GenerateSTART(I2C2,ENABLE);
 
+	// enable auto-ack
 	I2C_AcknowledgeConfig(I2C2,ENABLE);
 	I2C_GenerateSTOP(I2C2,DISABLE);
 
 	while(!I2C_CheckEvent(I2C2,I2C_EVENT_MASTER_MODE_SELECT)){}
 
+	// write device adress
 	I2C_Send7bitAddress(I2C2,LPS331_adress<<1,I2C_Direction_Transmitter);
 	while(!I2C_CheckEvent(I2C2,I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED)){}
 
+	// send control register ID
 	I2C_SendData(I2C2,LPS331_CTRL_REG1);
 	while(I2C_CheckEvent(I2C2,I2C_EVENT_MASTER_BYTE_TRANSMITTING)!=SUCCESS){}
 
+	// send initial value to enable LPS331 in full precision mode
 	I2C_SendData(I2C2,0b11100000);
 	while(I2C_CheckEvent(I2C2,I2C_EVENT_MASTER_BYTE_TRANSMITTING)!=SUCCESS){}
+
+	// generate stop condition
 	I2C_GenerateSTOP(I2C2,ENABLE);
 
 }
@@ -45,9 +50,11 @@ LPS331Result LPS331_readPressure(){
 
 	while(I2C_GetFlagStatus(I2C2, I2C_FLAG_BUSY)){}
 
+	//generate start condition
 	I2C_GenerateSTART(I2C2,ENABLE);
 	while(!I2C_CheckEvent(I2C2,I2C_EVENT_MASTER_MODE_SELECT)){}
 
+	// send device adress
 	I2C_Send7bitAddress(I2C2,LPS331_adress<<1,I2C_Direction_Transmitter);
 	while(!I2C_CheckEvent(I2C2,I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED)){}
 
@@ -55,13 +62,15 @@ LPS331Result LPS331_readPressure(){
 	I2C_SendData(I2C2,LPS331_PRESS_POUT_XL_REH|(1<<7));
 	while(I2C_CheckEvent(I2C2,I2C_EVENT_MASTER_BYTE_TRANSMITTING)!=SUCCESS){}
 
-
+	// generate start condition
 	I2C_GenerateSTART(I2C2,ENABLE);
 	while(I2C_CheckEvent(I2C2,I2C_EVENT_MASTER_MODE_SELECT)!=SUCCESS){}
 
+	// enable auto-ack
 	I2C_AcknowledgeConfig(I2C2,ENABLE);
 	I2C_GenerateSTOP(I2C2,DISABLE);
 
+	// send device adress
 	I2C_Send7bitAddress(I2C2,LPS331_adress<<1,I2C_Direction_Receiver);
 	while(I2C_CheckEvent(I2C2,I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED)!=SUCCESS){}
 
