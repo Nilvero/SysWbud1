@@ -29,16 +29,14 @@
 #include "ds18b20.h"
 #include "LPS331.h"
 #include "SharedFunctions.h"
+#include "MainMenu.h"
+#include "Data.h"
 int main(void)
 {
-
-	LPS331_INIT();
-	struct LPS331Result res;
-  int i = 0;
-  /* Infinite loop */
+  LCDinit();
+  MainMenu();
   while (1)
   {
-	  res=LPS331_readPressure();
 
   }
 }
@@ -49,7 +47,6 @@ int main(void)
  */
 uint32_t sEE_TIMEOUT_UserCallback(void)
 {
-  /* TODO, implement your code here */
   while (1)
   {
   }
