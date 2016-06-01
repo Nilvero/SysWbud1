@@ -7,6 +7,7 @@
 #include "ChartsMenu.h"
 
 void ChartsMenu(){
+
 	LCD_SetColors(0x0000,0xffff);
 	LCD_DrawFullRect(0,0,240,320);
 	Button temperature={5,30,"  Temperature "};
@@ -15,9 +16,8 @@ void ChartsMenu(){
 	Button extTemperature={5,180,"   Ext Temp   "};
 	Button returnButton={5,230,"    Return    "};
 
-	Data.changed=1;
+	results.changed=1;
 
-	float data[]={1,3,2,4,2,20,2,4,2,4,2,5,12};
 	TP_STATE state;
 
 	while(1){
@@ -27,26 +27,26 @@ void ChartsMenu(){
 					return;
 				}
 				else if(ButtonCheckIfPressed(state.X,state.Y,&temperature)==CLICKED){
-					ChartPanel("Temperature [5s]",data,11);
-					Data.changed=1;
+					ChartPanel("Temperature [5s]",results.temperaturesHistory,BUFFER_SIZE);
+					results.changed=1;
 				}
 				else if(ButtonCheckIfPressed(state.X,state.Y,&humidity)==CLICKED){
-					ChartPanel("Humidity [5s]",data,11);
-					Data.changed=1;
+					ChartPanel("Humidity [5s]",results.humidityHistory,BUFFER_SIZE);
+					results.changed=1;
 				}
 				else if(ButtonCheckIfPressed(state.X,state.Y,&pressure)==CLICKED){
-					ChartPanel("Pressure [5s]",data,11);
-					Data.changed=1;
+					ChartPanel("Pressure [5s]",results.pressureHistory,BUFFER_SIZE);
+					results.changed=1;
 				}
 				else if(ButtonCheckIfPressed(state.X,state.Y,&extTemperature)==CLICKED){
-					ChartPanel("Ext Temp. [5s]",data,11);
-					Data.changed=1;
+					ChartPanel("Ext Temp. [5s]",results.extTemperaturesHistory,BUFFER_SIZE);
+					results.changed=1;
 				}
 			}
 
 			state.TouchDetected=0;
 
-			if(Data.changed){
+			if(results.changed){
 				LCD_SetColors(0x0000,0xffff);
 				LCD_DrawFullRect(0,0,240,320);
 
@@ -56,8 +56,9 @@ void ChartsMenu(){
 				ButtonDraw(&extTemperature);
 				ButtonDraw(&returnButton);
 
-				Data.changed=0;
+				results.changed=0;
 			}
 
+			delayMSC(100);
 	}
 }

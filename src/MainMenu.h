@@ -9,7 +9,7 @@
 #include "stm32f429i_discovery_ioe.h"
 #include "Chart.h"
 #include "ChartsMenu.h"
-#include "Data.h"
+#include "Results.h"
 
 #ifndef MAINMENU_H_
 #define MAINMENU_H_

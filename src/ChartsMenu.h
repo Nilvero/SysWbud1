@@ -9,7 +9,9 @@
 #define CHARTSMENU_H_
 #include "stm32f429i_discovery_ioe.h"
 #include "Button.h"
-#include "Data.h"
+#include "Results.h"
+#include "ChartPanel.h"
+#include "SharedFunctions.h"
 void ChartsMenu();
 
 #endif /* CHARTSMENU_H_ */

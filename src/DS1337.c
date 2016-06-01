@@ -5,9 +5,10 @@
  *      Author: krzys
  */
 #include "DS1337.h"
+#include "SharedFunctions.h"
 
 void ds1337_INIT(){
-	if(I2C2_CONFIGURED==0){
+	if(I2C3_CONFIGURED==0){
 		InitI2C2();
 	}
 }

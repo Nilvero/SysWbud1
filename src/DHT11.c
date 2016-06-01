@@ -114,7 +114,6 @@ uint32_t DHT11DecodeByte(uint32_t * intervals,uint8_t * result){
 }
 
 void DHT11Decode(uint32_t * intervals,DHT11Result * result){
-	uint8_t index;
 
 	// decode RH integral
 	uint8_t RH_integral=0;

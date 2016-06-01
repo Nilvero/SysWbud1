@@ -25,21 +25,52 @@
 /* Includes */
 #include "stm32f4xx.h"
 #include "stm32f429i_discovery.h"
+#include "stm32f429i_discovery_ioe.h"
 #include "DHT11.h"
 #include "ds18b20.h"
 #include "LPS331.h"
 #include "SharedFunctions.h"
 #include "MainMenu.h"
-#include "Data.h"
+#include "Results.h"
+
+#define MEASURE_INTERVAL_MS 2000
+static unsigned counter;
+
+void delayDec(void)
+{
+    if(counter>0){
+        counter--;
+    }
+    else{
+		collectDataFromSensors();
+    	counter=MEASURE_INTERVAL_MS;
+    }
+}
+
+void SysTick_Handler(void)
+{
+   delayDec();
+}
+
 int main(void)
 {
-  LCDinit();
-  MainMenu();
-  while (1)
-  {
+   LPS331_INIT();
+   LCDinit();
+   DMArecordPushInit();
+   results.sampleNumber=0;
 
-  }
+   counter=MEASURE_INTERVAL_MS;
+
+   SysTick_Config(SystemCoreClock / 1000);
+  /* Infinite loop */
+   while (1)
+   {
+	  MainMenu();
+   }
 }
+
+
+
 
 /*
  * Callback used by stm324xg_eval_i2c_ee.c.
