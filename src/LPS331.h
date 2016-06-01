@@ -4,6 +4,8 @@
  *  Created on: Apr 29, 2016
  *      Author: krzys
  */
+#ifndef LPS331_term
+#define LPS331_term
 
 #include "stm32f4xx_i2c.h"
 #include "stm32f4xx_gpio.h"
@@ -24,3 +26,5 @@ typedef struct LPS331Result LPS331Result;
 
 void LPS331_INIT();
 LPS331Result LPS331_readPressure();
+
+#endif

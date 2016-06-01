@@ -10,7 +10,7 @@ void ChartPanel(char * chartName,float * pointerToDataArray,int sizeOfData){
 	TP_STATE state;
 	Button returnButton={5,250,"    Return    "};
 	Label nameOfChart={10,10,chartName};
-	Data.changed=1;
+	results.changed=1;
 	while(1){
 		state=*IOE_TP_GetState();
 		if (state.TouchDetected == 128 ) {
@@ -20,7 +20,7 @@ void ChartPanel(char * chartName,float * pointerToDataArray,int sizeOfData){
 			state.TouchDetected=0;
 		}
 
-		if(Data.changed){
+		if(results.changed){
 			LCD_SetColors(0x0000,0xffff);
 			LCD_DrawFullRect(0,0,240,320);
 
@@ -29,8 +29,9 @@ void ChartPanel(char * chartName,float * pointerToDataArray,int sizeOfData){
 
 			DrawChart(10,30,220,200,pointerToDataArray,sizeOfData);
 
-			Data.changed=0;
+			results.changed=0;
 
 		}
+		delayMSC(100);
 	}
 }

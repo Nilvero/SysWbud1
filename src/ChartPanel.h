@@ -10,8 +10,8 @@
 #include "Button.h"
 #include "stm32f429i_discovery_lcd.h"
 #include "stm32f429i_discovery_ioe.h"
-#include "Data.h"
 #include "Chart.h"
+#include "Results.h"
 void ChartPanel(char * chartName,float * pointerToDataArray,int sizeOfData);
 
 

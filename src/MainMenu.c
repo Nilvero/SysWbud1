@@ -40,29 +40,56 @@ void MainMenu(){
 	while(1){
 		state=*IOE_TP_GetState();
 		if (state.TouchDetected == 128 ) {
+			int s=state.TouchDetected;
 			if(ButtonCheckIfPressed(state.X,state.Y,&chart)==CLICKED){
+				state.TouchDetected=0;
+				results.changed=1;
 				ChartsMenu();
-				Data.changed=1;
+				results.changed=1;
 			}
 			state.TouchDetected=0;
 
 		}
-		if(Data.changed){
+		if(results.changed){
 			LCD_SetColors(0x0000,0xffff);
 			LCD_DrawFullRect(0,0,240,320);
 			ButtonDraw(&configuration);
 			ButtonDraw(&chart);
-			LabelDraw(&temperatureLabel);
-			LabelDraw(&humidityLabel);
-			LabelDraw(&pressureLabel);
-			LabelDraw(&externalTemperatureLabel);
 
-			DrawFloat(150,30,(float)Data.changed,2); // temperature
-			DrawFloat(150,70,(float)state.X/240.0*100,2); // humidity
-			DrawFloat(150,110,(float)state.X/240.0*100,2); // pressure
-			DrawFloat(150,150,(float)state.X/240.0*100,2); // ext temp
+			if(results.temperatureAndHumidity.ERROR_CODE==0){
+				LabelDraw(&temperatureLabel);
+				LabelDraw(&humidityLabel);
+				DrawFloat(150,30,(float)results.temperatureAndHumidity.temperature,2);
+				DrawFloat(150,70,(float)results.temperatureAndHumidity.humidity,2);
+			}
+			else{
+				Label tmp=temperatureLabel;
+				tmp.string="DHT_11 Error";
+				LabelDraw(&tmp);
+			}
 
-			Data.changed=0;
+			if(results.externalTemperature.ERROR_CODE==0){
+				LabelDraw(&externalTemperatureLabel);
+				DrawFloat(150,150,(float)results.externalTemperature.temperature,2);
+			}
+			else{
+				Label tmp=externalTemperatureLabel;
+				tmp.string="DS18B20 Error";
+				LabelDraw(&tmp);
+			}
+
+			if(results.pressure.ERROR_CODE==0){
+				LabelDraw(&pressureLabel);
+				DrawFloat(150,110,(float)results.pressure.pressure,2);
+			}
+			else{
+				Label tmp=pressureLabel;
+				tmp.string="LPS331 Error";
+				LabelDraw(&tmp);
+			}
+
+			results.changed=0;
 		}
+		delayMSC(100);
 	}
 }
