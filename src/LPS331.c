@@ -10,9 +10,7 @@
 
 
 void LPS331_INIT(){
-	//if(I2C3_CONFIGURED==0){
 	InitI2C3();
-	//}
 
 	while(I2C_GetFlagStatus(I2C3, I2C_FLAG_BUSY)){}
 

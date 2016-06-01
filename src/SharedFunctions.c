@@ -39,44 +39,8 @@ void InitTimerTIM2ToCountInUc(){
 }
 
 
-
-void i2c_init(void){
-
-                    GPIO_InitTypeDef GPIO_InitStruct; // this is for the GPIO pins used as I2C1SDA and I2C1SCL
-
-    I2C_InitTypeDef I2C_InitStruct; // this is for the I2C1 initilization
-
-    /* Enable Clocks */
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
-
-    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7; // Pins 6(I2C1_SCL) and 7(I2C1_SDA)
-    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF; // the pins are configured as alternate function so the USART peripheral has access to them
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;// this defines the IO speed and has nothing to do with the baudrate!
-    GPIO_InitStruct.GPIO_OType = GPIO_OType_OD;// this defines the output type as open drain
-    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;// this activates the pullup resistors on the IO pins
-
-    GPIO_PinAFConfig(GPIOB, GPIO_PinSource6, GPIO_AF_I2C1); //
-    GPIO_PinAFConfig(GPIOB, GPIO_PinSource7, GPIO_AF_I2C1);
-
-    GPIO_Init(GPIOB, &GPIO_InitStruct);// now all the values are passed to the GPIO_Init()
-
-       /* Set the I2C structure parameters */
-    I2C_InitStruct.I2C_Mode = I2C_Mode_I2C;
-    I2C_InitStruct.I2C_DutyCycle = I2C_DutyCycle_2;
-    I2C_InitStruct.I2C_OwnAddress1 = 0x00;
-    I2C_InitStruct.I2C_Ack = I2C_Ack_Enable;
-    I2C_InitStruct.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
-    I2C_InitStruct.I2C_ClockSpeed = 100000;
-
-    I2C_Cmd(I2C1, DISABLE);
-    I2C_Init(I2C1,&I2C_InitStruct);
-    I2C_Cmd(I2C1, ENABLE);
-
-}
-
 void InitI2C3(){
-	// enable i2c2 clock
+	// enable i2c3 clock
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C3, ENABLE);
 
 	// enable GPIOF clock
@@ -89,7 +53,7 @@ void InitI2C3(){
 	// enable syscfg clock
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 
-	// reset i2c2 circuit
+	// reset i2c3 circuit
 	RCC_APB1PeriphResetCmd(RCC_APB1Periph_I2C3,ENABLE);
 	RCC_APB1PeriphResetCmd(RCC_APB1Periph_I2C3,DISABLE);
 

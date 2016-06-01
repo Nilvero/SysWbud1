@@ -49,10 +49,6 @@ void DHT11SentStartRequest(){
 	GPIOG->ODR |=((uint32_t)(1<<5));
 }
 uint32_t DHT11RecvData(uint32_t * intervalsArray){
-	// enter to input mode (external pullup)
-	//GPIOG->MODER &= ~((uint32_t)(1<<11));
-	//GPIOG->MODER &= ~((uint32_t)(1<<10));
-
 	uint16_t state=GPIOG->IDR & (1<<5);
 
 	// listen for new data
@@ -161,8 +157,6 @@ DHT11Result DHT11_read(){
 
 	DHT11Result result;
 
-
-	// HOW TO DISABLE INTERRUPTS ?
 	InitTimerTIM2ToCountInUc();
 	DHT11SentStartRequest();
 	result.ERROR_CODE=DHT11RecvData(intervals);

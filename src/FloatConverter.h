@@ -58,8 +58,6 @@ void ftoa(float n, char *res, int afterpoint)
     int ipart = (int)n;
 
 
-
-
     // Extract floating part
     float fpart = n - (float)ipart;
 
